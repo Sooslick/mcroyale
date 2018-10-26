@@ -1,0 +1,32 @@
+StartZoneSize: 2048
+PreStartZoneSize: 2055
+NewZoneSizeMultiplier: 0.5
+StartTimer: 300
+RoyaleProcessorFrequency: 20
+WaitMultiplier: 0.75
+ShrinkMultiplier: 0.67
+EnableCenterOffset: true
+LavaFlowSpeed: 20
+EnableRedzone: true
+RedzoneRadius: 25
+RedzoneLength: 100
+RedzoneDensity: 5
+FirstRedzoneTime: 350
+RedzoneMinPause: 40
+RedzoneMaxPause: 90
+RedzoneMinZoneSize: 250
+EnableMonsters: true
+EnableMonstersTime: 310
+ZoneStartDamage: 0.01
+ZoneDamageMultiplier: 2
+GiveZoneMap: true
+EnableElytraStart: true
+StartFallHeight: 2500
+MonsterSpawns:
+  ZOMBIE: 0.75
+  SKELETON: 0.5
+  CREEPER: 0.5
+  SPIDER: 1
+  CAVE_SPIDER: 0.25
+  WITCH: 0.25
+  HUSK: 0.5

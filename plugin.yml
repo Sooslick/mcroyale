@@ -1,0 +1,21 @@
+name: BattleRoyale
+main: ru.sooslick.royale.royale
+version: 0.1
+author: sooslick
+commands:
+  royale:
+    description: starts new battle royale
+    usage: /startgame [x] [z]
+  zone:
+    description: returns current gamezone info
+    aliases: z
+    usage: /zone
+  votestart:
+    description: join player to Battle Royale
+    usage: /joingame <player>
+  squad:
+    description: manage player's squads
+    usage: /command <param>
+  rlconfig:
+    description: save / load
+    usage: /rlconfig
