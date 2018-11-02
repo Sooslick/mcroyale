@@ -14,7 +14,7 @@ public class royaleCommand implements CommandExecutor {
     {
         if (args.length == 0)
         {
-            sender.sendMessage("§cRoyale commands: /royale, /squad, /votestart");
+            sender.sendMessage("§cRoyale commands: /royale, /squad, /votestart, /zone");
             return true;
         }
         if (!sender.hasPermission("royale.admin"))
@@ -84,7 +84,7 @@ public class royaleCommand implements CommandExecutor {
             sender.sendMessage("§cGame is not started.");
             return true;
         }
-        sender.sendMessage("§cAvailable commands: startgame, stopgame, reload, join");
+        sender.sendMessage("§cAvailable commands: startgame, stopgame, join");
         return true;
     }
 }

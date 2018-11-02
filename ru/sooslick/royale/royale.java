@@ -202,7 +202,7 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
 
         //zone startgame
         GameZone.startgame();
-        ZONE_TASK_ID = getServer().getScheduler().scheduleSyncRepeatingTask(this, ZONE_SECOND_PROCESSOR, 1,CFG.getInt("RoyaleProcessorFrequency", 20));    //TODO FREQ!!
+        ZONE_TASK_ID = getServer().getScheduler().scheduleSyncRepeatingTask(this, ZONE_SECOND_PROCESSOR, 1,CFG.getInt("RoyaleProcessorFrequency", 20));
         Bukkit.getScheduler().cancelTask(INVITE_TASK_ID);
         alertEveryone("§a[Royale] New game is started!");
     }
@@ -544,7 +544,7 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
         {
             if (GameZone.GameActive)
             {
-                sender.sendMessage("GAME IS RUNNING");
+                sender.sendMessage("GAME IS RUNNING");  //todo fix messags
                 return true;
             }
             if (!sender.hasPermission("royale.vote"))
@@ -552,25 +552,36 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
                 sender.sendMessage("§c[Royale] req royale.vote permission");
                 return true;
             }
-            if (sender instanceof Player) {
+            if (StartGameCountdown) {
+                sender.sendMessage("§c[Royale] Game starts in " + StartGameTimer + " seconds!");
+                return true;
+            }
+            if (sender instanceof Player)
+            {
                 Player p = (Player) sender;
                 if (!Votestarters.contains(p))
+                {
                     Votestarters.add(p);
-                //TODO get cfg values
-                if ((Votestarters.size() / Bukkit.getOnlinePlayers().size() > 0.5) || (Votestarters.size() > 3)) {
-                    StartGameCountdown = true;
-                    StartGameTimer = 60;
-                    alertEveryone("§a[Royale] Game start in 60 sec!");
+                    //TODO get cfg values
+                    if ((Votestarters.size() / Bukkit.getOnlinePlayers().size() > 0.5) || (Votestarters.size() > 3)) {
+                        StartGameCountdown = true;
+                        StartGameTimer = 60;
+                        alertEveryone("§a[Royale] Game start in 60 sec!");
+                    }
+                    p.sendMessage("§a[Royale] start vote accepted");
                 }
-                p.sendMessage("§a[Royale] start vote accepted");
+                else {
+                    p.sendMessage("§c[Royale] You have voted yet");
+                    return true;
+                }
             } else
                 sender.sendMessage("Console can't vote to start");
         }
-        else
-        {
-            //config
+        else {
+            //config command
             reloadConfig();
-            //todo ?
+            configFixMissing();
+            sender.sendMessage("Config reloaded. ");
         }
         return true;
     }

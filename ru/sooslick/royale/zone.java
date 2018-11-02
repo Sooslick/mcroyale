@@ -196,7 +196,7 @@ public class zone implements CommandExecutor
                         xc = nxc;           //set fixed center
                         zc = nzc;
                         double ozs = nzs;   //old zone size;
-                        wb.setCenter(xc, zc);               //todo bad code
+                        wb.setCenter(xc, zc);
                         if (nzs <= 16)          //check last zone
                             LavaActive = true;
                         else                    // *= "NewZoneSizeMultiplier"
@@ -269,7 +269,7 @@ public class zone implements CommandExecutor
                     if (wb.getSize() > rzMinSize) {
                         if (rzt > 0) {                //timer offset
                             rzt -= freq;
-                            if (rzt <= 0)             //todo alert on 60 / 30 / other secs
+                            if (rzt <= 0)
                                 rzQtyLeft = rzQty;
                         } else {
                             if (rzQtyLeft <= 0)               //set new redzone params
