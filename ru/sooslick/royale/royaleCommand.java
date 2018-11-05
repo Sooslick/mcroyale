@@ -24,39 +24,26 @@ public class royaleCommand implements CommandExecutor {
         }
         if ((args[0].equals("start"))||(args[0].equals("startgame")))
         {
-            if (!sender.hasPermission("royale.game"))
-                return true;
-            //TODO msg
             plugin.onStartgameCmd(); //TODO: return int: switch int to msg
             return true;
         }
         if ((args[0].equals("stop"))||(args[0].equals("stopgame")))
         {
-            if (!sender.hasPermission("royale.game"))
-                return true;
-            //TODO msg
             plugin.onStopgameCmd();
             return true;
         }
         if ((args[0].equals("pause"))||(args[0].equals("pausegame")))
         {
-            if (!sender.hasPermission("royale.game"))
-                return true;
-            //TODO msg
             plugin.onPausegameCmd();
             plugin.alertEveryone("TODO CMD: onPause");
             return true;
         }
         if ((args[0].equals("continue"))||(args[0].equals("continuegame")))
         {
-            if (!sender.hasPermission("royale.game"))
-                return true;
-            //TODO msg
             plugin.onContinuegameCmd();
             plugin.alertEveryone("TODO CMD: onContinue");
             return true;
         }
-        //TODO msg!
 
         if ((args[0].equals("join")) || (args[0].equals("joingame")) )
         {
@@ -72,7 +59,7 @@ public class royaleCommand implements CommandExecutor {
                         plugin.GameZone.addTeam(s);
                         p.getInventory().clear();
                         plugin.clearArmor(p);
-                        p.teleport(plugin.RandomLocation(plugin.CFG.getInt("StartZoneSize", 2048)));
+                        p.teleport(plugin.RandomLocation(plugin.CFG.getInt("StartZoneSize", 2048) - 100));
                         Bukkit.broadcastMessage("§aPlayer " + p.getName() + " joined to game and teleported to random location!");
                     }
                     else

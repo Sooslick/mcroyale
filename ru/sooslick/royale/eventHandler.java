@@ -191,7 +191,7 @@ public class eventHandler implements Listener {
                 e.setCancelled(true);
                 return;
             }
-        }
+        } /*
         else {
             EntityType et = e.getEntityType();
             for (Map<?,?> m : Z.CFG.getMapList("MonsterSpawns"))
@@ -201,7 +201,7 @@ public class eventHandler implements Listener {
                         return;
                     }
             //TODO
-        }
+        } */
         return;
     }
 }

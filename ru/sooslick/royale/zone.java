@@ -121,6 +121,7 @@ public class zone implements CommandExecutor
         //TODO cancel bukkit task!
         GameActive = false;
         Teams.clear();
+        plugin.reset();
         init(w);
     }
 

@@ -159,7 +159,7 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
                 for (String pname : s.GetPlayers())
                     s.RevivePlayer(pname);
             }
-            Location loc = RandomLocation(1800);//todo
+            Location loc = RandomLocation(CFG.getInt("StartZoneSize", 2048) - 100);
             loc.setY(CFG.getInt("StartFallHeight"));
             for (Player p : Bukkit.getOnlinePlayers())
             {
@@ -187,7 +187,7 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
         else {
             for (squad s : Squads) {
                 GameZone.addTeam(s);
-                Location loc = RandomLocation(1800);//("StartZoneSize");todo
+                Location loc = RandomLocation(CFG.getInt("StartZoneSize", 2048) - 100);
                 for (String pname : s.GetPlayers()) {
                     s.RevivePlayer(pname);
                     Player p = Bukkit.getPlayer(pname);
@@ -207,6 +207,12 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
         alertEveryone("§a[Royale] New game is started!");
     }
 
+    public void reset()
+    {
+        INVITE_TASK_ID = getServer().getScheduler().scheduleSyncRepeatingTask(this, SQUAD_INVITE_PROCESSOR, 1, 20);
+        Bukkit.getScheduler().cancelTask(ZONE_TASK_ID);
+    }
+
     public void onStopgameCmd()
     {
         if (!GameZone.GameActive)
@@ -224,12 +230,16 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
 
     public void onPausegameCmd()
     {
-        return; //todo msg
+        LOG.warning("[Royale] onPausegameCmd error: broken feature!");
+        alertEveryone("§c[Royale] Failed attempt to pause game!");
+        return;
     }
 
     public void onContinuegameCmd()
     {
-        return; //todo msg
+        LOG.warning("[Royale] onContinuegameCmd error: broken feature!");
+        alertEveryone("§c[Royale] Failed attempt to start game!");
+        return;
     }
 
     //TODO:
@@ -676,6 +686,7 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
         }
         if (CFG.getMapList("MonsterSpawns").size()==0)
             LOG.info("[Royale] MonsterSpawns list is empty?");
+        //TODO fix monster list
         // - Ограничитель количества мобов (и конкретных типов)
 
         //- аирдроп вкл / выкл
