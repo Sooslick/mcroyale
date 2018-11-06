@@ -589,9 +589,36 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
         }
         else {
             //config command
-            reloadConfig();
-            configFixMissing();
-            sender.sendMessage("Config reloaded. ");
+            if (!sender.hasPermission("royale.admin"))
+            {
+                sender.sendMessage("§c[Royale] req royale.admin permission");
+                return true;
+            }
+            if (args.length == 0)
+            {
+                sender.sendMessage("§cConfig commands: reload, save, defaults, setparam");
+                return true;
+            }
+            if (args[0].equals("reload")) {
+                reloadConfig();
+                configFixMissing();
+                sender.sendMessage("Config reloaded. ");
+                return true;
+            }
+            if (args[0].equals("save")) {
+                saveConfig();
+                sender.sendMessage("Config saved. ");
+                return true;
+            }
+            if (args[0].equals("defaults")) {
+                sender.sendMessage("we don't realie this feature at the moment ");
+                return true;
+            }
+            if (args[0].equals("setparam")) {
+                sender.sendMessage("we don't realie this feature at the moment ");
+                return true;
+            }
+            sender.sendMessage("Wrong command");
         }
         return true;
     }
@@ -696,6 +723,7 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
         //  - всякие параметры плотности и спавна сундуков с лутом
         //TODO min players votestart
         //TODO min % votestart
+        //todo config param change ingame + cfg save
     }
 
     public void zonelog(String s)
