@@ -229,6 +229,7 @@ public class zone implements CommandExecutor
                                     else if (nzs < 1024) {zmr.setScale(MapView.Scale.FAR); sc = 16;}
                                     else {zmr.setScale(MapView.Scale.FARTHEST); sc = 32;}
                                     Renderer r = new Renderer();
+                                    r.initialize(zmr);
                                     r.init((int)nzs, sc);
                                     zmr.addRenderer(r);
                                     zonemap.setDurability(zmr.getId());

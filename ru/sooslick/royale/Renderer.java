@@ -29,7 +29,7 @@ public class Renderer extends MapRenderer {
         MapCursorCollection mcc = new MapCursorCollection();
         int px = (int) (64+(p.getLocation().getBlockX() - mv.getCenterX()) / sizemod);
         int pz = (int) (64+(p.getLocation().getBlockZ() - mv.getCenterZ()) / sizemod);
-        mcc.addCursor(px,pz,(byte)0);
+        mcc.addCursor(px,pz,(byte)0, (byte)6, true);
         mc.setCursors(mcc);
     }
 }

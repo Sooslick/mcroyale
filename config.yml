@@ -30,3 +30,7 @@ MonsterSpawns:
   CAVE_SPIDER: 0.25
   WITCH: 0.25
   HUSK: 0.5
+MinVotestarts: 3
+MinVotestartPercent: 0.5
+PostGameShutDown: true
+PostGameShutDownTime: 60

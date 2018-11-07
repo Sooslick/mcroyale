@@ -191,17 +191,16 @@ public class eventHandler implements Listener {
                 e.setCancelled(true);
                 return;
             }
-        } /*
+        }
         else {
             EntityType et = e.getEntityType();
-            for (Map<?,?> m : Z.CFG.getMapList("MonsterSpawns"))
-                if (m.containsKey(et))
-                    if (Math.random() > (double)m.get(et)) {
+            for (String k : Z.CFG.getConfigurationSection("MonsterSpawns").getKeys(false))
+                if (et.getName().equals(k))
+                    if (Math.random() > Z.CFG.getConfigurationSection("MonsterSpawns").getDouble(k, 1)) {
                         e.setCancelled(true);
                         return;
                     }
-            //TODO
-        } */
+        }
         return;
     }
 }

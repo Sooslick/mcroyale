@@ -27,8 +27,10 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
     public ru.sooslick.royale.royale ROYALE;
     public Runnable ZONE_SECOND_PROCESSOR;
     public Runnable SQUAD_INVITE_PROCESSOR;
+    public Runnable SD_PROCESSOR;
     public int ZONE_TASK_ID;
     public int INVITE_TASK_ID;
+    public int SD_TASK_ID;
     public zone GameZone;
     public squad EmptySquad;
     public FileConfiguration CFG;
@@ -39,6 +41,8 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
     public ArrayList<Player> Votestarters= new ArrayList<>();
     public int StartGameTimer = 60;
     public boolean StartGameCountdown = false;
+    public int ShutDownTimer = 60;
+    public boolean ShutDownCountdown = false;
 
     @Override
     public void onEnable()
@@ -110,6 +114,17 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
                     }
                     else if (Math.floorMod(StartGameTimer,10)==0)
                         alertEveryone("§a[Royale] Game starts in " + Integer.toString(StartGameTimer)+ " seconds!");
+                }
+            }
+        };
+
+        this.SD_PROCESSOR = new Runnable() {
+            @Override
+            public void run() {
+                ShutDownTimer--;
+                if (ShutDownTimer < 0) {
+                    alertEveryone("§a[Royale] Restarting server!");
+                    Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "reboot");
                 }
             }
         };
@@ -209,8 +224,28 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
 
     public void reset()
     {
+        if (CFG.getBoolean("PostGameShutDown", true))
+        {
+            ShutDownTimer = CFG.getInt("PostGameShutDownTimer", 60);
+            ShutDownCountdown = true;
+            alertEveryone("§c[Royale] Game is ended. Server will be restarted in " + ShutDownTimer + " seconds!");
+            SD_TASK_ID = getServer().getScheduler().scheduleSyncRepeatingTask(this, SD_PROCESSOR, 1, 20);
+        }
+        else
+        {
+            reset2();  //AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+        }
+    }
+
+    //todo RENAME METHOD WTF как ты докатился до таких названий-то блин
+    public void reset2()
+    {
         INVITE_TASK_ID = getServer().getScheduler().scheduleSyncRepeatingTask(this, SQUAD_INVITE_PROCESSOR, 1, 20);
         Bukkit.getScheduler().cancelTask(ZONE_TASK_ID);
+        Votestarters.clear();
+        Invites.clear();
+        Leavers.clear();
+        //todo this code requires testing. Something is wrong
     }
 
     public void onStopgameCmd()
@@ -253,10 +288,16 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
     //restore zone
     //start timer
 
+    public void cancelShutDown() {
+        Bukkit.getScheduler().cancelTask(SD_TASK_ID);
+        //TODO check if countdown NOT running! this command breaks the game!
+        reset2();  //AAA AAAA AAAAAA как сделать капс еще больше
+    }
+
     @Override
     public void onDisable()
     {
-        //TODO Cfg saving
+        saveConfig();
         LOG.info("[Royale] Saved configuration");
     }
 
@@ -287,7 +328,8 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
 
     public squad onSquadCreate(Player creator) //TODO boolean
     {
-        squad s = getSquad(creator);               //check creator not in squad
+        squad s = getSquad(creator);
+        //check if creator not in squad
         if (s.equals(EmptySquad)) {
             s = new squad();
             s.leader = creator.getName();
@@ -296,10 +338,14 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
             Squads.add(s);
             alertPlayer("§a[Royale] Squad created!", creator);
             alertEveryone("§c[Royale] Squad \"" + s.name + "\" created!");
+            //todo: remove all pending invites with creator
         }
+        else
+            alertPlayer("§a[Royale] You are member of squad!", creator);
         return s;
     }
 
+    //todo: cfg squad members cap
     public void onSquadInvite(Player who,String whom)
     {
         squad s = getSquad(who);               //check if inviter in squad
@@ -573,12 +619,13 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
                 {
                     Votestarters.add(p);
                     //TODO get cfg values
-                    if ((Votestarters.size() / Bukkit.getOnlinePlayers().size() > 0.5) || (Votestarters.size() > 3)) {
+                    if ((Votestarters.size() / Bukkit.getOnlinePlayers().size() >= CFG.getDouble("MinVotestartPercent", 0.5)) || (Votestarters.size() >= CFG.getInt("MinVotestarts", 3))) {
                         StartGameCountdown = true;
                         StartGameTimer = 60;
                         alertEveryone("§a[Royale] Game start in 60 sec!");
                     }
                     p.sendMessage("§a[Royale] start vote accepted");
+                    alertEveryone("§a[Royale] " + p + " voted to start!");
                 }
                 else {
                     p.sendMessage("§c[Royale] You have voted yet");
@@ -611,11 +658,11 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
                 return true;
             }
             if (args[0].equals("defaults")) {
-                sender.sendMessage("we don't realie this feature at the moment ");
+                sender.sendMessage("we don't realize this feature at the moment ");
                 return true;
             }
             if (args[0].equals("setparam")) {
-                sender.sendMessage("we don't realie this feature at the moment ");
+                sender.sendMessage("we don't realize this feature at the moment ");
                 return true;
             }
             sender.sendMessage("Wrong command");
@@ -713,6 +760,21 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
         }
         if (CFG.getMapList("MonsterSpawns").size()==0)
             LOG.info("[Royale] MonsterSpawns list is empty?");
+        if (CFG.getInt("MinVotestarts", 3)<1) {
+            CFG.set("MinVotestarts", 3);
+            LOG.info("[ROYALE] Fixed minimal number of players are voted to start to proceed. Game starts after 3 votes");
+        }
+        if (CFG.getDouble("MinVotestartPercent", 0.5)>1) {
+            CFG.set("MinVotestartPercent", 0.5);
+            LOG.info("[ROYALE] Fixed minimal percent of voted players to game start.");
+        }
+        CFG.getBoolean("PostGameShutDown", true);
+        LOG.info("[ROYALE] Should the server automatically reboot after game? "+ Boolean.toString(CFG.getBoolean("PostGameShutDown")));
+        if (CFG.getInt("PostGameShutDownTime", 60)<1) {
+            CFG.set("PostGameShutDownTime", 60);
+            LOG.info("[ROYALE] Fixed time to shutdown server after game end. New time is 60 seconds.");
+        }
+
         //TODO fix monster list
         // - Ограничитель количества мобов (и конкретных типов)
 

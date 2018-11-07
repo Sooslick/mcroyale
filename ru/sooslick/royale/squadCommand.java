@@ -21,7 +21,7 @@ public class squadCommand implements CommandExecutor {
         }
         if (!(sender instanceof Player))
         {
-            //TODO msg console cant
+            sender.sendMessage("§c[Royale] console are banned from battle royale. Console is cheater!");
             return true;
         }
         if (args.length == 0)
@@ -38,9 +38,11 @@ public class squadCommand implements CommandExecutor {
         }
         if (args[0].equals("invite"))
         {
-            if (args.length == 1)
+            if (args.length == 1) {
+                sender.sendMessage("§6/squad invite <player1> [player2] [player3]...");
+                //todo multiplr invite proc
                 return true;
-                //TODO cmd help
+            }
             plugin.onSquadInvite((Player)sender, args[1]);
             return true;
         }
@@ -56,9 +58,10 @@ public class squadCommand implements CommandExecutor {
         }
         if (args[0].equals("kick"))
         {
-            if (args.length == 1)
+            if (args.length == 1) {
+                sender.sendMessage("§6/squad kick <player>");
                 return true;
-            //TODO cmd help
+            }
             plugin.onSquadKick((Player)sender, args[1]);
             return true;
         }

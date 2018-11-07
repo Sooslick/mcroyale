@@ -71,7 +71,12 @@ public class royaleCommand implements CommandExecutor {
             sender.sendMessage("§cGame is not started.");
             return true;
         }
-        sender.sendMessage("§cAvailable commands: startgame, stopgame, join");
+
+        if (args[0].equals("csd")) {
+            plugin.cancelShutDown();
+            return true;
+        }
+        sender.sendMessage("§cAvailable commands: startgame, stopgame, join, csd");
         return true;
     }
 }
