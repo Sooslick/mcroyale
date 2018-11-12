@@ -3,16 +3,20 @@ package ru.sooslick.royale;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
+import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
+import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
@@ -28,6 +32,7 @@ public class eventHandler implements Listener {
         Z = R.GameZone;
     }
 
+    //todo: messages, event type + refactor
     @EventHandler(priority = EventPriority.NORMAL)
     public void OnDamage(EntityDamageEvent e)
     {
@@ -88,7 +93,7 @@ public class eventHandler implements Listener {
             p.getInventory().clear();
             R.clearArmor(p);
             R.Leavers.remove(p);
-            R.alertPlayer("§a[Royale] Revived!", p);        //TODO msg cfg
+            R.alertEveryone("§a[Royale] Player "+p.getName()+" reconnected and revived!");
         }
     }
 
@@ -97,13 +102,16 @@ public class eventHandler implements Listener {
         Player p = e.getPlayer();
         if (Z.GameActive) {
             squad s = R.getSquad(p);
-            s.KillPlayer(p.getName());
-            R.InvToChest(p);        //TODO save inv
-            p.getInventory().clear();
-            R.clearArmor(p);
-            R.Leavers.add(p);
+            if (s.GetAlives().contains(p.getName())) {
+                s.KillPlayer(p.getName());
+                R.InvToChest(p);        //TODO save inv
+                p.getInventory().clear();
+                R.clearArmor(p);
+                R.Leavers.add(p);
+                R.alertEveryone("§c[Royale] Player " + p.getName() + " disconnected");
+            }
         }
-        if (R.Votestarters.contains(p))
+        else if (R.Votestarters.contains(p))
             R.Votestarters.remove(p);
     }
 
@@ -200,7 +208,51 @@ public class eventHandler implements Listener {
                         e.setCancelled(true);
                         return;
                     }
+            //todo log monster info
         }
         return;
+    }
+
+    @EventHandler
+    public void onBlockPlace(PlayerInteractEvent e)
+    {
+        if (e.isCancelled())
+            return;
+
+        if (!e.getAction().equals(Action.RIGHT_CLICK_BLOCK))
+            return;
+
+        if (Z.wb.isInside(e.getPlayer().getLocation()))
+            return;
+
+        if (!e.getItem().getType().isBlock())
+            return;
+
+        switch (e.getBlockFace()) {
+            case DOWN:
+                R.w.getBlockAt(e.getClickedBlock().getX(), e.getClickedBlock().getY()-1, e.getClickedBlock().getZ()).setType(e.getItem().getType());
+                e.getItem().setAmount(e.getItem().getAmount()-1);
+                break;
+            case UP:
+                R.w.getBlockAt(e.getClickedBlock().getX(), e.getClickedBlock().getY()+1, e.getClickedBlock().getZ()).setType(e.getItem().getType());
+                e.getItem().setAmount(e.getItem().getAmount()-1);
+                break;
+            case NORTH:
+                R.w.getBlockAt(e.getClickedBlock().getX(), e.getClickedBlock().getY(), e.getClickedBlock().getZ()-1).setType(e.getItem().getType());
+                e.getItem().setAmount(e.getItem().getAmount()-1);
+                break;
+            case SOUTH:
+                R.w.getBlockAt(e.getClickedBlock().getX(), e.getClickedBlock().getY(), e.getClickedBlock().getZ()+1).setType(e.getItem().getType());
+                e.getItem().setAmount(e.getItem().getAmount()-1);
+                break;
+            case EAST:
+                R.w.getBlockAt(e.getClickedBlock().getX()-1, e.getClickedBlock().getY(), e.getClickedBlock().getZ()).setType(e.getItem().getType());
+                e.getItem().setAmount(e.getItem().getAmount()-1);
+                break;
+            case WEST:
+                R.w.getBlockAt(e.getClickedBlock().getX()+1, e.getClickedBlock().getY()-1, e.getClickedBlock().getZ()).setType(e.getItem().getType());
+                e.getItem().setAmount(e.getItem().getAmount()-1);
+                break;
+        }
     }
 }

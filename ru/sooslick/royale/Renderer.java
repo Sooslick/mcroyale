@@ -3,6 +3,8 @@ package ru.sooslick.royale;
 import org.bukkit.entity.Player;
 import org.bukkit.map.*;
 
+import java.security.Timestamp;
+
 /**
  * Created by sooslick on 15.10.2018.
  */
@@ -26,10 +28,14 @@ public class Renderer extends MapRenderer {
             mc.setPixel(i,begin, MapPalette.BLUE);
             mc.setPixel(i,end, MapPalette.BLUE);
         }
-        MapCursorCollection mcc = new MapCursorCollection();
-        int px = (int) (64+(p.getLocation().getBlockX() - mv.getCenterX()) / sizemod);
-        int pz = (int) (64+(p.getLocation().getBlockZ() - mv.getCenterZ()) / sizemod);
-        mcc.addCursor(px,pz,(byte)0, (byte)6, true);
-        mc.setCursors(mcc);
+        if (System.currentTimeMillis() % 1000 < 500) {
+            int px = (int) ((p.getLocation().getBlockX() - mv.getCenterX()) / (sizemod / 2) + 64);
+            int pz = (int) ((p.getLocation().getBlockZ() - mv.getCenterZ()) / (sizemod / 2) + 64);
+            mc.setPixel(px,pz,MapPalette.RED);
+            mc.setPixel(px-1,pz-1,MapPalette.RED);
+            mc.setPixel(px-1,pz+1,MapPalette.RED);
+            mc.setPixel(px+1,pz-1,MapPalette.RED);
+            mc.setPixel(px+1,pz+1,MapPalette.RED);
+        }
     }
 }

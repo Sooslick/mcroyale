@@ -12,6 +12,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.map.MapView;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 
 import java.io.IOException;
@@ -35,6 +36,8 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
     public squad EmptySquad;
     public FileConfiguration CFG;
     public World w;
+    public Scoreboard sb;
+    public Team tm;
     private ArrayList<squad> Squads = new ArrayList<>();
     private ArrayList<squadInvite> Invites = new ArrayList<>();
     public ArrayList<Player> Leavers = new ArrayList<>();
@@ -61,21 +64,25 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
         } catch (Exception ex) {
             LOG.warning("[Royale] " + ex);
         }
+        //todo check if cfg !exists
         this.CFG = getConfig();
         configFixMissing();
         this.saveConfig();
         this.reloadConfig();
-        LOG.info("[Royale] Config");
+        LOG.info("[Royale] Read config");
 
         w = getServer().getWorlds().get(0); //get main world
 
         GameZone = new zone(this);
         GameZone.CFG = CFG;
         GameZone.init(w);
-        LOG.info("[Royale] GameZone created");
+        LOG.info("[Royale] GameZone prepared");
 
         EmptySquad = new squad();
+        Squads.clear();
+        Invites.clear();
         Leavers.clear();
+        Votestarters.clear();
 
         getServer().getPluginManager().registerEvents(new eventHandler(this),this);
         getCommand("royale").setExecutor(new royaleCommand(this));
@@ -124,16 +131,19 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
                 ShutDownTimer--;
                 if (ShutDownTimer < 0) {
                     alertEveryone("§a[Royale] Restarting server!");
-                    Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "reboot");
+                    Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "stop");
                 }
             }
         };
 
         INVITE_TASK_ID = getServer().getScheduler().scheduleSyncRepeatingTask(this, SQUAD_INVITE_PROCESSOR, 1, 20);
 
+        sb = Bukkit.getScoreboardManager().getNewScoreboard();
+        tm = sb.registerNewTeam("Royale");
+        tm.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.NEVER);
+
         LOG.info("[Royale] Plugin enabled!");
     }
-    //TODO: Reload func
 
     //on StartGame
     //squad processor pre-start game
@@ -145,11 +155,9 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
             return;
         }
         //create team 4 every player
-        Team rl = Bukkit.getScoreboardManager().getNewScoreboard().registerNewTeam("Royale");
-        rl.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.NEVER);
         for (Player p : Bukkit.getOnlinePlayers())
         {
-            rl.addPlayer(p);
+            tm.addEntry(p.getName());
             boolean found = false;
             for (squad s : Squads)
                 if (s.HasPlayer(p.getName())) {found = true; break;}
@@ -222,7 +230,7 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
         alertEveryone("§a[Royale] New game is started!");
     }
 
-    public void reset()
+    public void endgame()
     {
         if (CFG.getBoolean("PostGameShutDown", true))
         {
@@ -232,19 +240,19 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
             SD_TASK_ID = getServer().getScheduler().scheduleSyncRepeatingTask(this, SD_PROCESSOR, 1, 20);
         }
         else
-        {
-            reset2();  //AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-        }
+            reset();
     }
 
-    //todo RENAME METHOD WTF как ты докатился до таких названий-то блин
-    public void reset2()
+    public void reset()
     {
         INVITE_TASK_ID = getServer().getScheduler().scheduleSyncRepeatingTask(this, SQUAD_INVITE_PROCESSOR, 1, 20);
         Bukkit.getScheduler().cancelTask(ZONE_TASK_ID);
-        Votestarters.clear();
         Invites.clear();
         Leavers.clear();
+        Votestarters.clear();
+        tm.getEntries().clear();
+        ShutDownTimer = CFG.getInt("PostGameShutDownTimer", 60);
+        ShutDownCountdown = false;
         //todo this code requires testing. Something is wrong
     }
 
@@ -289,9 +297,11 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
     //start timer
 
     public void cancelShutDown() {
-        Bukkit.getScheduler().cancelTask(SD_TASK_ID);
-        //TODO check if countdown NOT running! this command breaks the game!
-        reset2();  //AAA AAAA AAAAAA как сделать капс еще больше
+        if (ShutDownCountdown) {
+            Bukkit.getScheduler().cancelTask(SD_TASK_ID);
+            reset();
+            alertEveryone("§c[Royale] Cancelled shutting down by admin. Preparing to new royale game...");
+        }
     }
 
     @Override
@@ -625,7 +635,7 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
                         alertEveryone("§a[Royale] Game start in 60 sec!");
                     }
                     p.sendMessage("§a[Royale] start vote accepted");
-                    alertEveryone("§a[Royale] " + p + " voted to start!");
+                    alertEveryone("§a[Royale] " + p.getName() + " voted to start!");
                 }
                 else {
                     p.sendMessage("§c[Royale] You have voted yet");
@@ -680,6 +690,10 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
             CFG.set("PreStartZoneSize", 2055);
             LOG.info("[ROYALE] Fixed pre-start zone size. New size = 2055 blocks");
         }
+        if (CFG.getInt("EndZoneSize", 100)<=0) {
+            CFG.set("EndZoneSize", 100);
+            LOG.info("[ROYALE] Fixed last zone size. New size = 100 blocks");
+        }
         if (CFG.getDouble("NewZoneSizeMultiplier", 0.5D)>=1) {
             CFG.set("NewZoneSizeMultiplier", 0.5D);
             LOG.info("[ROYALE] Fixed new zone size multiplier. New qf = 0.5");
@@ -702,6 +716,10 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
         }
         CFG.getBoolean("EnableCenterOffset", true);
         LOG.info("[ROYALE] Zone center offset enabled? "+ Boolean.toString(CFG.getBoolean("EnableCenterOffset")));
+        if (CFG.getInt("LavaFlowZoneSize", 16)>25) {
+            CFG.set("LavaFlowZoneSize", 16);
+            LOG.info("[ROYALE] Fixed lava flow zone size. New size = 16 blocks");
+        }
         if (CFG.getInt("LavaFlowSpeed", 20)<1) {
             CFG.set("LavaFlowSpeed", 20);
             LOG.info("[ROYALE] Fixed lava flow speed. New speed = 1 block per second");

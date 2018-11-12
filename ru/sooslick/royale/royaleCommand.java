@@ -52,18 +52,34 @@ public class royaleCommand implements CommandExecutor {
                 //TODO check if player has perms or player is playing right now
                 if (plugin.GameZone.FirstZone)
                 {
-                    if (sender instanceof Player)
-                    {
-                        Player p = (Player) sender;
-                        squad s = plugin.onSquadCreate(p);
-                        plugin.GameZone.addTeam(s);
-                        p.getInventory().clear();
-                        plugin.clearArmor(p);
-                        p.teleport(plugin.RandomLocation(plugin.CFG.getInt("StartZoneSize", 2048) - 100));
-                        Bukkit.broadcastMessage("§aPlayer " + p.getName() + " joined to game and teleported to random location!");
+                    if (args.length==1) {
+                        if (sender instanceof Player) {
+                            Player p = (Player) sender;
+                            squad s = plugin.onSquadCreate(p);
+                            plugin.GameZone.addTeam(s);
+                            p.getInventory().clear();
+                            plugin.clearArmor(p);
+                            plugin.tm.addEntry(p.getName());
+                            p.teleport(plugin.RandomLocation(plugin.CFG.getInt("StartZoneSize", 2048) - 100));
+                            Bukkit.broadcastMessage("§aPlayer " + p.getName() + " joined to game and teleported to random location!");
+                        } else
+                            sender.sendMessage("§cConsole can't play royale :c");
                     }
-                    else
-                        sender.sendMessage("§cConsole can't play royale :c");
+                    else {
+                        String pn = args[1];
+                        for (Player p : Bukkit.getOnlinePlayers()) {
+                            if (p.getName().equals(pn)) {
+                                squad s = plugin.onSquadCreate(p);
+                                plugin.GameZone.addTeam(s);
+                                p.getInventory().clear();
+                                plugin.clearArmor(p);
+                                plugin.tm.addEntry(p.getName());
+                                p.teleport(plugin.RandomLocation(plugin.CFG.getInt("StartZoneSize", 2048) - 100));
+                                Bukkit.broadcastMessage("§aPlayer " + p.getName() + " joined to game and teleported to random location!");
+                            }
+                        }
+                        sender.sendMessage("§cCan't find player " + pn);
+                    }
                 }
                 else
                     sender.sendMessage("§cYou are too late...");

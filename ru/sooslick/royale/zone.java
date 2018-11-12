@@ -9,6 +9,7 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.TNTPrimed;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.map.MapView;
@@ -31,6 +32,7 @@ public class zone implements CommandExecutor
     private double zs;          //zone size
     private double nzs;         //next zone size
     private double nzs_mpl;     //next zone size multiplier
+    private double lfzs;        //lavaflow zone size;
     private double wait_mpl;    //zone wait timer multiplier
     private double sh_mpl;      //zone shrink timer multiplier
     public boolean MonstersActive;
@@ -84,6 +86,7 @@ public class zone implements CommandExecutor
         zs = CFG.getInt("PreStartZoneSize", 2055);
         nzs = CFG.getInt("StartZoneSize", 2048);
         nzs_mpl = CFG.getDouble("NewZoneSizeMultiplier", 0.5D);
+        lfzs = CFG.getInt("LavaFlowZoneSize", 16);
         wait_mpl = CFG.getDouble("WaitMultiplier", 0.75);
         sh_mpl = CFG.getDouble("ShrinkMultiplier", 0.67);
         ll = 0;
@@ -101,7 +104,7 @@ public class zone implements CommandExecutor
         wb = w.getWorldBorder();
         wb.setSize(zs);
         wb.setCenter(xc,zc);
-        wb.setDamageBuffer(0);
+        wb.setDamageBuffer(100);
         wb.setDamageAmount(CFG.getDouble("ZoneStartDamage", 0.01));
         dmg = CFG.getDouble("ZoneDamageMultiplier", 2);
         eltimer = 300;
@@ -118,10 +121,8 @@ public class zone implements CommandExecutor
 
     public void stopgame()
     {
-        //TODO cancel bukkit task!
         GameActive = false;
-        Teams.clear();
-        plugin.reset();
+        plugin.endgame();
         init(w);
     }
 
@@ -137,11 +138,12 @@ public class zone implements CommandExecutor
                 {
                     lt -= ltReq;
                     Location l = wb.getCenter();
+                    int ofs = (int)(lfzs / 2) + 2;
                     l.setY(ll+1);
-                    int lfx1 = Math.round(l.getBlockX() - 10);
-                    int lfx2 = Math.round(l.getBlockX() + 10);
-                    int lfz1 = Math.round(l.getBlockZ() - 10);
-                    int lfz2 = Math.round(l.getBlockZ() + 10);      //TODO set global
+                    int lfx1 = Math.round(l.getBlockX() - ofs);
+                    int lfx2 = Math.round(l.getBlockX() + ofs);
+                    int lfz1 = Math.round(l.getBlockZ() - ofs);
+                    int lfz2 = Math.round(l.getBlockZ() + ofs);
                     //Barrier:
                     for (int i = lfx1; i <= lfx2; i++) {
                         l.setX(i);
@@ -188,7 +190,13 @@ public class zone implements CommandExecutor
                 zt -= freq;
                 //if zone shrink
                 if (ZoneShrink) {
-                    if (zt <= 0) //switch moment
+                    //check lavaflow size to force switch
+                    if (wb.getSize() <= lfzs) {
+                        wb.setSize(wb.getSize());
+                        LavaActive = true;
+                        Bukkit.broadcastMessage("§cRestricting play area! §6Lava flow §cbegins right now!");
+                    }
+                    else if (zt <= 0) //switch moment
                     {
                         ZoneShrink = false;
                         zt = zwt;           //set timer
@@ -197,19 +205,22 @@ public class zone implements CommandExecutor
                         xc = nxc;           //set fixed center
                         zc = nzc;
                         double ozs = nzs;   //old zone size;
-                        wb.setCenter(xc, zc);
-                        if (nzs <= 16)          //check last zone
-                            LavaActive = true;
-                        else                    // *= "NewZoneSizeMultiplier"
-                            nzs *= nzs_mpl;            //pre-set new size-center
-                        //set new center if enabled
-                        if (CFG.getBoolean("EnableCenterOffset", true)) {
+                        wb.setCenter(xc, zc);   // *= "NewZoneSizeMultiplier"
+                        nzs *= nzs_mpl;            //pre-set new size-center
+                        //check if last zone (no center offset)
+                        if (nzs < CFG.getInt("EndZoneSize", 100))
+                            nzs = 0;
+                            //set new center if enabled
+                        else if (CFG.getBoolean("EnableCenterOffset", true)) {
                             nxc += Math.random() * (ozs - nzs) - nzs / 2;
                             nzc += Math.random() * (ozs - nzs) - nzs / 2;
                         }
                         wb.setDamageAmount(wb.getDamageAmount() * dmg); //new damage
+                        Bukkit.broadcastMessage("=-=-§aRoyale Zone§f-=-=");
                         Bukkit.broadcastMessage("§cRestricting play area in " + Integer.toString((int) (zt / 20)) + " seconds!");
                         Bukkit.broadcastMessage("§cNew zone center at x=" + Integer.toString((int) nxc) + "; z=" + Integer.toString((int) nzc));
+                        Bukkit.broadcastMessage("=-=-=-=-=-=-=-=-=-=");
+                        Bukkit.broadcastMessage("§4[name:\"Zone Center\", x:"+Integer.toString((int) nxc)+",y:0,z:"+Integer.toString((int) nzc)+"]");
                         //map item
                         if (CFG.getBoolean("GiveZoneMap")) {
                             //todo: common squad map + /zone marker x y feature
@@ -419,6 +430,10 @@ public class zone implements CommandExecutor
                             {
                                 p.sendMessage("§cYou are not in safe zone! Type /zone for details");
                                 Alerts.put(p, (p.getLocation().getBlockY()+10)*25);
+                            }
+                            //damage if outside
+                            if (!wb.isInside(ploc)) {
+                                Bukkit.getPluginManager().callEvent(new EntityDamageEvent(p, EntityDamageEvent.DamageCause.SUFFOCATION, wb.getDamageAmount()));
                             }
                         }
                     }

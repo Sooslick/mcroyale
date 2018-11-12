@@ -1,11 +1,13 @@
 StartZoneSize: 2048
 PreStartZoneSize: 2055
+EndZoneSize: 100
 NewZoneSizeMultiplier: 0.5
 StartTimer: 300
 RoyaleProcessorFrequency: 20
 WaitMultiplier: 0.75
 ShrinkMultiplier: 0.67
 EnableCenterOffset: true
+: 16
 LavaFlowSpeed: 20
 EnableRedzone: true
 RedzoneRadius: 25
@@ -21,7 +23,7 @@ ZoneStartDamage: 0.01
 ZoneDamageMultiplier: 2
 GiveZoneMap: true
 EnableElytraStart: true
-StartFallHeight: 2500
+StartFallHeight: 1600
 MonsterSpawns:
   ZOMBIE: 0.75
   SKELETON: 0.5
