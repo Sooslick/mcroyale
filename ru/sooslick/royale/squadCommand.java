@@ -1,5 +1,6 @@
 package ru.sooslick.royale;
 
+import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -19,6 +20,16 @@ public class squadCommand implements CommandExecutor {
             sender.sendMessage("§c[Royale] req royale.squad permission");
             return true;
         }
+        if (args[0].equals("list"))
+        {
+            plugin.sendSquadList(sender);
+            return true;
+        }
+        if (plugin.GameZone.GameActive)
+        {
+            sender.sendMessage("§c[Royale] You can't manage squad while game is running!");
+            return true;
+        }
         if (!(sender instanceof Player))
         {
             sender.sendMessage("§c[Royale] console are banned from battle royale. Console is cheater!");
@@ -26,14 +37,17 @@ public class squadCommand implements CommandExecutor {
         }
         if (args.length == 0)
         {
-            sender.sendMessage("§6Squad commands: create, invite, accept, decline, kick, disband, view, leave");
+            sender.sendMessage("§6Squad commands: create, invite, accept, decline, kick, disband, view, leave, list");
             return true;
         }
         if (args[0].equals("create"))
         {
-            //if !empty args 1
-            //    todo squad name
-            plugin.onSquadCreate((Player)sender);
+            String sn;
+            if (args.length == 1)
+                sn = sender.getName();
+            else
+                sn = args[1];
+            plugin.onSquadCreate((Player)sender, sn);
             return true;
         }
         if (args[0].equals("invite"))
@@ -72,7 +86,10 @@ public class squadCommand implements CommandExecutor {
         }
         if (args[0].equals("view"))
         {
-            plugin.onSquadView((Player)sender);
+            if (args.length == 1)
+                plugin.onSquadView((Player)sender, "");
+            else
+                plugin.onSquadView((Player)sender, args[1]);
             return true;
         }
         if (args[0].equals("leave"))
@@ -80,9 +97,29 @@ public class squadCommand implements CommandExecutor {
             plugin.onSquadLeave((Player)sender);
             return true;
         }
-        //TODO: squad view: param squadname
+        if (args[0].equals("rename"))
+        {
+            if (args.length == 1) {
+                sender.sendMessage("§cTry /squad rename <SquadName>");
+                return true;
+            }
+            squad s = plugin.getSquad((Player)sender);
+            if (s.equals(plugin.EmptySquad)) {
+                sender.sendMessage("§c[Royale] You are not in squad!");
+                return true;
+            }
+            if (!s.leader.equals(sender.getName())) {
+                sender.sendMessage("§c[Royale] You are not the squad leader!");
+                return true;
+            }
+            Bukkit.broadcastMessage("§c[Royale] Now the squad \"" + s.name + "\" have new name \"" + args[1] + "\"!");
+            s.name = args[1];
+            sender.sendMessage("§a[Royale] Your squad renamed.");
+            return true;
+        }
+        //TODO: squad join request
         //TODO: squad list cmd
-        sender.sendMessage("§6Squad commands: create, invite, accept, decline, kick, disband, view, leave");
+        sender.sendMessage("§6Squad commands: create, rename invite, accept, decline, kick, disband, view, leave");
         return true;
     }
 }

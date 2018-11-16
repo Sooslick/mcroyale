@@ -1,5 +1,7 @@
 package ru.sooslick.royale;
 
+import org.bukkit.entity.Player;
+
 import java.util.ArrayList;
 
 public class squad {
@@ -12,7 +14,13 @@ public class squad {
     public void Reset() {
         players.clear();
         alives.clear();
-        name = leader;
+    }
+
+    public squad(Player p, String s) {
+        leader = p.getName();
+        name = s;
+        Reset();
+        AddPlayer(leader);
     }
 
     public void SetName(String param) {

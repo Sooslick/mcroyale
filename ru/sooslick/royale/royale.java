@@ -78,7 +78,7 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
         GameZone.init(w);
         LOG.info("[Royale] GameZone prepared");
 
-        EmptySquad = new squad();
+        EmptySquad = new squad(null, "Empty Squad");
         Squads.clear();
         Invites.clear();
         Leavers.clear();
@@ -163,10 +163,7 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
                 if (s.HasPlayer(p.getName())) {found = true; break;}
             if (!found)
             {
-                squad s = new squad();
-                s.leader = p.getName();
-                s.Reset();
-                s.AddPlayer(p.getName());
+                squad s = new squad(p, p.getName());
                 Squads.add(s);
             }
             p.getInventory().clear();
@@ -311,10 +308,11 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
         LOG.info("[Royale] Saved configuration");
     }
 
-    public void alertEveryone(String msg)    {        Bukkit.broadcastMessage(msg);    }
+    public void alertEveryone(String msg) {Bukkit.broadcastMessage(msg);}
 
     public void alertPlayer(String msg, Player p) {p.sendMessage(msg);}
 
+    //todo check dangerous locations
     public Location RandomLocation(int Max)
     {
         Location l = new Location(w, 0, 64, 0);
@@ -336,15 +334,12 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
         return l;
     }
 
-    public squad onSquadCreate(Player creator) //TODO boolean
+    public squad onSquadCreate(Player creator, String name) //TODO boolean
     {
         squad s = getSquad(creator);
         //check if creator not in squad
         if (s.equals(EmptySquad)) {
-            s = new squad();
-            s.leader = creator.getName();
-            s.Reset();
-            s.AddPlayer(creator.getName());
+            s = new squad(creator, name);
             Squads.add(s);
             alertPlayer("§a[Royale] Squad created!", creator);
             alertEveryone("§c[Royale] Squad \"" + s.name + "\" created!");
@@ -450,6 +445,10 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
             alertPlayer("§c[Royale] You are not in squad!", p);
             return;
         }
+        if (s.leader.equals(p.getName())) {
+            alertPlayer("§c[Royale] You can't leave from your squad. Use /squad disband",p);
+            return;
+        }
 
         s.KickPlayer(p.getName());
         alertPlayer("§c[Royale] you left the squad!", p);
@@ -468,13 +467,17 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
             alertPlayer("§c[Royale] You are not the squad leader!", p);
             return;
         }
+        if (s.leader.equals(p.getName())) {
+            alertPlayer("§c[Royale] You can't kick yourself from squad. Use /squad disband",p);
+            return;
+        }
 
         for (String pn : s.GetPlayers())
         {
             if (pn.equals(kicked))
             {
                 s.KickPlayer(kicked);
-                alertPlayer("§c[Royale] kicked " + kicked, p);
+                alertPlayer("§c[Royale] kicked " + kicked + " from your squad", p);
                 alertPlayer("§c[Royale] You have been kicked from the squad!", Bukkit.getPlayer(kicked));
                 alertEveryone("§c[Royale] Now the squad \"" + s.name + "\" have " + Integer.toString(s.GetPlayersCount()) + " members!");
                 return;
@@ -510,12 +513,26 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
         Squads.remove(s);
     }
 
-    public void onSquadView(Player p)
+    public void onSquadView(Player p, String sn)
     {
-        squad s = getSquad(p);                //check if inviter in squad
-        if (s.equals(EmptySquad)) {
-            alertPlayer("§c[Royale] You are not in squad!", p);
-            return;
+        squad s = EmptySquad;
+        if (sn.equals("")) {
+            s = getSquad(p);                //check if requester in squad
+            if (s.equals(EmptySquad)) {
+                alertPlayer("§c[Royale] You are not in squad!", p);
+                return;
+            }
+        }
+        else {
+            for (squad s1 : Squads)
+                if (s1.name.equals(sn)) {
+                    s = s1;
+                    break;
+                }
+            if (s.equals(EmptySquad)) {
+                alertPlayer("§c[Royale] Squad \""+sn+"\" not found!", p);
+                return;
+            }
         }
 
         p.sendMessage("§6Squad name: " + s.name);
@@ -523,6 +540,13 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
         p.sendMessage("§6Squad members:");
         for (String pn : s.GetPlayers())
             p.sendMessage("§e - " + pn);
+    }
+
+    public void sendSquadList(CommandSender a) {
+        String str = "§e";
+        for (squad s : Squads)
+            str = str + s.name + ", ";
+        a.sendMessage(str);
     }
 
     public boolean isPlayerInSquad(String pn)
@@ -803,7 +827,8 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
         //  - всякие параметры плотности и спавна сундуков с лутом
         //TODO min players votestart
         //TODO min % votestart
-        //todo config param change ingame + cfg save
+        //todo config param change ingame
+        //todo nametag visiblity param
     }
 
     public void zonelog(String s)

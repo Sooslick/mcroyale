@@ -4,9 +4,7 @@ import org.bukkit.*;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
-import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.TNTPrimed;
 import org.bukkit.event.entity.EntityDamageEvent;
@@ -400,7 +398,7 @@ public class zone implements CommandExecutor
                 Bukkit.broadcastMessage("§a" + f.name + " won the game!");
             }
 
-            //Alert processor
+            //Alert processor + player damage by zone
             {
                 for (squad s : Teams)
                     for (String pn : s.GetAlives())

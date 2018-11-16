@@ -7,7 +7,7 @@ RoyaleProcessorFrequency: 20
 WaitMultiplier: 0.75
 ShrinkMultiplier: 0.67
 EnableCenterOffset: true
-: 16
+LavaFlowZoneSize: 16
 LavaFlowSpeed: 20
 EnableRedzone: true
 RedzoneRadius: 25

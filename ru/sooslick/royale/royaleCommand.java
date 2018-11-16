@@ -15,6 +15,15 @@ public class royaleCommand implements CommandExecutor {
         if (args.length == 0)
         {
             sender.sendMessage("§cRoyale commands: /royale, /squad, /votestart, /zone");
+            sender.sendMessage("§cTry §6/royale help §cto get more info about commands!");
+            return true;
+        }
+        if (args[0].equals("help"))
+        {
+            sender.sendMessage("=-=-§eBATTLE ROYALE§f-=-=");
+            sender.sendMessage("§6Battle without rules. Your squad spawns at randomly chosen location with bare hands. Now you must craft weapon and be ready to further fighting!");
+            sender.sendMessage("§6Game zone will shrink all the time. If you get outside, you will die. To avoid this, check your coordinates on map or §e/zone§6 command.");
+            sender.sendMessage("§6Text blah blah blah");
             return true;
         }
         if (!sender.hasPermission("royale.admin"))
@@ -55,7 +64,7 @@ public class royaleCommand implements CommandExecutor {
                     if (args.length==1) {
                         if (sender instanceof Player) {
                             Player p = (Player) sender;
-                            squad s = plugin.onSquadCreate(p);
+                            squad s = plugin.onSquadCreate(p, p.getName());
                             plugin.GameZone.addTeam(s);
                             p.getInventory().clear();
                             plugin.clearArmor(p);
@@ -69,7 +78,7 @@ public class royaleCommand implements CommandExecutor {
                         String pn = args[1];
                         for (Player p : Bukkit.getOnlinePlayers()) {
                             if (p.getName().equals(pn)) {
-                                squad s = plugin.onSquadCreate(p);
+                                squad s = plugin.onSquadCreate(p, p.getName());
                                 plugin.GameZone.addTeam(s);
                                 p.getInventory().clear();
                                 plugin.clearArmor(p);

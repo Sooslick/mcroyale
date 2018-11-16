@@ -3,8 +3,6 @@ package ru.sooslick.royale;
 import org.bukkit.entity.Player;
 import org.bukkit.map.*;
 
-import java.security.Timestamp;
-
 /**
  * Created by sooslick on 15.10.2018.
  */
