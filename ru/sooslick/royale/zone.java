@@ -63,6 +63,8 @@ public class zone implements CommandExecutor
     public ArrayList<Player> Flyers = new ArrayList<>();
     private ArrayList<squad> Teams = new ArrayList<>();
     private HashMap<Player, Integer> Alerts = new HashMap<>();
+    public int alive;
+    public int aliveTeams;
 
     public void init(World world)
     {
@@ -80,7 +82,7 @@ public class zone implements CommandExecutor
         freq = CFG.getInt("RoyaleProcessorFrequency", 20);
         zwt = CFG.getInt("StartTimer", 300) * 20;
         zsht = CFG.getInt("StartTimer", 300) * 20;  //seconds * 20 = gameticks
-        zt = 60*20;     //pre-start value todo config
+        zt = CFG.getInt("PreStartTimer", 60)*20;
         zs = CFG.getInt("PreStartZoneSize", 2055);
         nzs = CFG.getInt("StartZoneSize", 2048);
         nzs_mpl = CFG.getDouble("NewZoneSizeMultiplier", 0.5D);
@@ -110,10 +112,13 @@ public class zone implements CommandExecutor
         Teams.clear();
         Alerts.clear();
         Flyers.clear();
+        alive = 0;
+        aliveTeams = 0;
     }
 
     public void startgame()
     {
+        wb.setSize(nzs, zt/20);
         GameActive = true;
     }
 
@@ -226,9 +231,11 @@ public class zone implements CommandExecutor
                                 int sc;
                                 for (Player pl : Bukkit.getOnlinePlayers())
                                 {
+                                    pl.setCompassTarget(new Location(w, nxc, 0, nzc));
+                                    //give zone map
                                     ItemStack zonemap = new ItemStack(Material.MAP);
                                     MapView zmr = Bukkit.createMap(w);
-                                    //zmr.getRenderers().clear();
+                                    zmr.getRenderers().clear();
                                     zmr.setUnlimitedTracking(true);
                                     zmr.setCenterX((int) nxc);
                                     zmr.setCenterZ((int) nzc);
@@ -243,6 +250,7 @@ public class zone implements CommandExecutor
                                     zmr.addRenderer(r);
                                     zonemap.setDurability(zmr.getId());
                                     pl.getInventory().addItem(zonemap);
+                                    //todo fix old map?
                                 }
                             }
                         }
@@ -264,7 +272,6 @@ public class zone implements CommandExecutor
                         zwt *= wait_mpl;            //"WaitMultiplier"
                         wb.setSize(nzs, zsht/20); //zone shrink by minecraft
                         Bukkit.broadcastMessage("§cRestricting play area!");
-                        //TODO check first-zone & monsters enabled
                     } else {
                         if (triggerSecond(60, zt, freq)) Bukkit.broadcastMessage("§cRestricting play area in 60 seconds!");
                         else if (triggerSecond(30, zt, freq)) Bukkit.broadcastMessage("§cRestricting play area in 30 seconds!");
@@ -280,36 +287,24 @@ public class zone implements CommandExecutor
                     if (wb.getSize() > rzMinSize) {
                         if (rzt > 0) {                //timer offset
                             rzt -= freq;
-                            if (rzt <= 0)
+                            if (rzt <= 0) {
                                 rzQtyLeft = rzQty;
+                                Bukkit.broadcastMessage("§4Redzone started!");
+                            }
+                            else if (triggerSecond(30, rzt, freq)) Bukkit.broadcastMessage("§4Redzone in 30 seconds!");
                         } else {
                             if (rzQtyLeft <= 0)               //set new redzone params
                             {
-                                rzx = 0;
-                                rzz = 0;
-                                int modifier = 0;
-                                int alive = 0;
-                                for (Player p : Bukkit.getServer().getOnlinePlayers()) {
-                                    if (plugin.isAliveInSquad(p.getName())) {
-                                        rzx += p.getLocation().getBlockX();
-                                        rzz += p.getLocation().getBlockZ();
-                                        alive++;
-                                        if (Math.random() > 0.5) {
-                                            rzx += p.getLocation().getBlockX();
-                                            rzz += p.getLocation().getBlockZ();
-                                            modifier++;
-                                        }
-                                    }
-                                }
-                                rzx = (int) Math.round(rzx / (alive + modifier) + (Math.random() - 0.5) * 200);
-                                rzz = (int) Math.round(rzz / (alive + modifier) + (Math.random() - 0.5) * 200);
+                                //set new redzone center
+                                rzx = wb.getCenter().getBlockX() + (int)((Math.random()-0.5)*nzs);
+                                rzz = wb.getCenter().getBlockZ() + (int)((Math.random()-0.5)*nzs);
                                 rzt = (int) (Math.random() * (rzpMax - rzpMin)) + rzpMin;
                                 Bukkit.broadcastMessage("§cNew redzone at x=" + Integer.toString((int)rzx) + "; z=" + Integer.toString((int)rzz) + " in " + Integer.toString((int)(rzt/20)) + " seconds");
                             } else {
                                 for (int i = 0; i < rzDen; i++) {
                                     rzQtyLeft--;
                                     Location l = new Location(w, 0, 255, 0);               //spawn tnt
-                                    l.setX(rzx + (Math.random() - 0.5) * rzrad*2);               //todo radius & timers
+                                    l.setX(rzx + (Math.random() - 0.5) * rzrad*2);
                                     l.setZ(rzz + (Math.random() - 0.5) * rzrad*2);               //"RedzoneRadius"
                                     TNTPrimed tnt = w.spawn(l, TNTPrimed.class);
                                     tnt.setFuseTicks(250 + (int) (Math.random() * 20));
@@ -318,16 +313,13 @@ public class zone implements CommandExecutor
                         }
                     }
                 } else {
+                    //enable redzone
                     rzt -= freq;
                     if (rzt <= 0) {
                         RedzoneActive = true;
                         rzt = 0;
                         rzQtyLeft = 0;
-                        Bukkit.broadcastMessage("§4Redzone started!");
                     }
-                    else if (triggerSecond(60, rzt, freq)) Bukkit.broadcastMessage("§4Redzone in 60 seconds!");
-                    else if (triggerSecond(30, rzt, freq)) Bukkit.broadcastMessage("§4Redzone in 30 seconds!");
-                    else if (triggerSecond(10, rzt, freq)) Bukkit.broadcastMessage("§4Redzone in 10 seconds!");
                 }
             }
 
@@ -381,19 +373,15 @@ public class zone implements CommandExecutor
             }
 
             //wingame processor
-            //TODO replace alive counter
-            int a = 0;
-            squad f = plugin.EmptySquad;
-            for (squad s : Teams)
+            if (aliveTeams<=1)
             {
-                if (s.HaveAlive())
-                {
-                    a++;
-                    f = s;
-                }
-            }
-            if (a<=1)
-            {
+                //fid alive squad
+                squad f = plugin.EmptySquad;
+                for (squad s : Teams)
+                    if (s.HaveAlive()) {
+                        f = s;
+                        break;
+                    }
                 stopgame();
                 Bukkit.broadcastMessage("§a" + f.name + " won the game!");
             }
@@ -418,7 +406,7 @@ public class zone implements CommandExecutor
                             {
                                 if (Alerts.get(p) < 0)
                                 {
-                                    p.sendMessage("§cYou are not in safe zone! Type /zone for details");
+                                    p.sendMessage("§cYou are not in safe zone! Type §6/zone §cfor details");
                                     Alerts.replace(p, (p.getLocation().getBlockY()+10)*25);
                                 }
                                 else
@@ -426,7 +414,7 @@ public class zone implements CommandExecutor
                             }
                             else
                             {
-                                p.sendMessage("§cYou are not in safe zone! Type /zone for details");
+                                p.sendMessage("§cYou are not in safe zone! Type §6/zone §cfor details");
                                 Alerts.put(p, (p.getLocation().getBlockY()+10)*25);
                             }
                             //damage if outside
@@ -437,7 +425,6 @@ public class zone implements CommandExecutor
                     }
             }
 
-            //TODO Alive Counter
             //debug log
             /*
             String s = "";
@@ -486,8 +473,11 @@ public class zone implements CommandExecutor
 
         sender.sendMessage("§6Current zone size: " + Integer.toString((int)wb.getSize()));
         sender.sendMessage("§6Next zone size: " + nzs);
+        sender.sendMessage("§6 ");
         sender.sendMessage("§6Zone center: x=" + Integer.toString((int)nxc) + "; z=" + Integer.toString((int)nzc));
         sender.sendMessage("§6Your location: x=" + Integer.toString(ploc.getBlockX()) + "; z=" + Integer.toString(ploc.getBlockZ()));
+        sender.sendMessage("§6 ");
+        sender.sendMessage("§7Your compass is always leads on the zone center. Special map shows to you the next zone borders.");
         return true;
     }
 

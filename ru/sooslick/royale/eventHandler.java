@@ -75,6 +75,9 @@ public class eventHandler implements Listener {
                     squad s = R.getSquad(p1);
                     s.KillPlayer(p1.getName());
                     R.alertEveryone("§c[Royale] " + p1.getName() + cause);
+                    Z.alive = Z.alivePlayers();
+                    Z.aliveTeams = Z.aliveTeams();
+                    R.alertEveryone("§c[Royale] " + Z.alive + " players left!");
                     e.setCancelled(true);
                 }
             }

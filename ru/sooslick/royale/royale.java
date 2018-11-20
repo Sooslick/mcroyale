@@ -168,7 +168,10 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
             }
             p.getInventory().clear();
             clearArmor(p);
+            p.setCompassTarget(new Location(w, 0, 0, 0));
+            p.getInventory().addItem(new ItemStack(Material.COMPASS));
             p.setGameMode(GameMode.SURVIVAL);
+            GameZone.alive++;
         }
 
         //teleport teams
@@ -176,6 +179,7 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
         {
             for (squad s: Squads) {
                 GameZone.addTeam(s);
+                GameZone.aliveTeams++;
                 for (String pname : s.GetPlayers())
                     s.RevivePlayer(pname);
             }
@@ -212,10 +216,6 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
                     s.RevivePlayer(pname);
                     Player p = Bukkit.getPlayer(pname);
                     p.teleport(loc);
-                    //elytra code
-                    //if (CFG.CFG.getBoolean("EnableElytraStart", true)) {
-                    //    p.getInventory().getChestplate().setType(Material.ELYTRA);
-                    //}
                 }
             }
         }
@@ -250,7 +250,14 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
         tm.getEntries().clear();
         ShutDownTimer = CFG.getInt("PostGameShutDownTimer", 60);
         ShutDownCountdown = false;
+        for (Player p : Bukkit.getOnlinePlayers()) {
+            p.setGameMode(GameMode.SPECTATOR);
+            p.getInventory().clear();
+            clearArmor(p);
+        }
         //todo this code requires testing. Something is wrong
+
+        //todo: track created chests and clear it
     }
 
     public void onStopgameCmd()
@@ -714,6 +721,10 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
             CFG.set("PreStartZoneSize", 2055);
             LOG.info("[ROYALE] Fixed pre-start zone size. New size = 2055 blocks");
         }
+        if (CFG.getInt("PreStartTimer", 60)<1) {
+            CFG.set("PreStartTimer", 60);
+            LOG.info("[ROYALE] Fixed pre-start timer. First zone will be assigned in 60 seconds");
+        }
         if (CFG.getInt("EndZoneSize", 100)<=0) {
             CFG.set("EndZoneSize", 100);
             LOG.info("[ROYALE] Fixed last zone size. New size = 100 blocks");
@@ -843,3 +854,5 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
     }
 }
 //TODO: player stats & cnfigs: enable random squad 4 balancing
+
+//todo track every container to regen map w/ chests

@@ -1,5 +1,6 @@
 StartZoneSize: 2048
 PreStartZoneSize: 2055
+PreStartTimer: 60
 EndZoneSize: 100
 NewZoneSizeMultiplier: 0.5
 StartTimer: 300
