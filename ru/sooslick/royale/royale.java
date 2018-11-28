@@ -33,7 +33,6 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
     public int INVITE_TASK_ID;
     public int SD_TASK_ID;
     public zone GameZone;
-    public squad EmptySquad;
     public FileConfiguration CFG;
     public World w;
     public Scoreboard sb;
@@ -78,7 +77,6 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
         GameZone.init(w);
         LOG.info("[Royale] GameZone prepared");
 
-        EmptySquad = new squad(null, "Empty Squad");
         Squads.clear();
         Invites.clear();
         Leavers.clear();
@@ -90,7 +88,6 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
         getCommand("zone").setExecutor(GameZone);
         getCommand("votestart").setExecutor(this);
         getCommand("rlconfig").setExecutor(this);
-        //TODO fix royale.yml
 
         this.ZONE_SECOND_PROCESSOR = new Runnable() {
             @Override
@@ -211,6 +208,7 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
         else {
             for (squad s : Squads) {
                 GameZone.addTeam(s);
+                GameZone.aliveTeams++;
                 Location loc = RandomLocation(CFG.getInt("StartZoneSize", 2048) - 100);
                 for (String pname : s.GetPlayers()) {
                     s.RevivePlayer(pname);
@@ -289,13 +287,13 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
         return;
     }
 
-    //TODO:
+    //TODO: pause
     //save players loc
     //save invs
     //save zone & timers
     //spectate
 
-    //tODO
+    //tODO: cont
     //restore loc & invs
     //restore zone
     //start timer
@@ -345,7 +343,7 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
     {
         squad s = getSquad(creator);
         //check if creator not in squad
-        if (s.equals(EmptySquad)) {
+        if (s == null) {
             s = new squad(creator, name);
             Squads.add(s);
             alertPlayer("§a[Royale] Squad created!", creator);
@@ -361,7 +359,7 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
     public void onSquadInvite(Player who,String whom)
     {
         squad s = getSquad(who);               //check if inviter in squad
-        if (s.equals(EmptySquad)) {
+        if (s == null) {
             alertPlayer("§c[Royale] You are not a member of any squad!", who);
             return;
         }
@@ -448,7 +446,7 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
     public void onSquadLeave(Player p)
     {
         squad s = getSquad(p);               //check if leaver in squad
-        if (s.equals(EmptySquad)){
+        if (s == null){
             alertPlayer("§c[Royale] You are not in squad!", p);
             return;
         }
@@ -466,7 +464,7 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
     public void onSquadKick(Player p, String kicked)
     {
         squad s = getSquad(p);               //check kicked by leader
-        if (s.equals(EmptySquad)) {
+        if (s == null) {
             alertPlayer("§c[Royale] You are not in squad!", p);
             return;
         }
@@ -497,7 +495,7 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
     public void onSquadDisband(Player p)
     {
         squad s = getSquad(p);               //check disbanded by leader
-        if (s.equals(EmptySquad)) {
+        if (s == null) {
             alertPlayer("§c[Royale] You are not in squad!", p);
             return;
         }
@@ -522,10 +520,10 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
 
     public void onSquadView(Player p, String sn)
     {
-        squad s = EmptySquad;
+        squad s = null;
         if (sn.equals("")) {
             s = getSquad(p);                //check if requester in squad
-            if (s.equals(EmptySquad)) {
+            if (s == null) {
                 alertPlayer("§c[Royale] You are not in squad!", p);
                 return;
             }
@@ -536,7 +534,7 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
                     s = s1;
                     break;
                 }
-            if (s.equals(EmptySquad)) {
+            if (s == null) {
                 alertPlayer("§c[Royale] Squad \""+sn+"\" not found!", p);
                 return;
             }
@@ -583,7 +581,7 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
                 return s;
             }
         }
-        return EmptySquad;
+        return null;
     }
 
     public void clearArmor(Player player){
@@ -615,6 +613,7 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
                 }
             }
         }
+        /* there is a bug: armor dublicating in chest. Actual for older spigot versions?
         for (ItemStack IS : p.getInventory().getArmorContents())
         {
             if (IS != null)
@@ -630,6 +629,7 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
                 }
             }
         }
+        */
         p.getInventory().clear();
         clearArmor(p);
     }
@@ -641,7 +641,7 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
         {
             if (GameZone.GameActive)
             {
-                sender.sendMessage("GAME IS RUNNING");  //todo fix messags
+                sender.sendMessage("GAME IS RUNNING");
                 return true;
             }
             if (!sender.hasPermission("royale.vote"))
@@ -659,7 +659,6 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
                 if (!Votestarters.contains(p))
                 {
                     Votestarters.add(p);
-                    //TODO get cfg values
                     if ((Votestarters.size() / Bukkit.getOnlinePlayers().size() >= CFG.getDouble("MinVotestartPercent", 0.5)) || (Votestarters.size() >= CFG.getInt("MinVotestarts", 3))) {
                         StartGameCountdown = true;
                         StartGameTimer = 60;
@@ -828,7 +827,6 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
             LOG.info("[ROYALE] Fixed time to shutdown server after game end. New time is 60 seconds.");
         }
 
-        //TODO fix monster list
         // - Ограничитель количества мобов (и конкретных типов)
 
         //- аирдроп вкл / выкл
@@ -836,8 +834,6 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
 
         //    - генерация структур вкл / выкл
         //  - всякие параметры плотности и спавна сундуков с лутом
-        //TODO min players votestart
-        //TODO min % votestart
         //todo config param change ingame
         //todo nametag visiblity param
     }

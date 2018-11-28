@@ -10,10 +10,14 @@ public class Renderer extends MapRenderer {
 
     private int size;
     private int sizemod;
+    private int px_old;
+    private int pz_old;
 
     public void init(int s, int sm) {
         size = s;
         sizemod = sm;
+        px_old = 0;
+        pz_old = 0;
     }
 
     @Override
@@ -26,14 +30,30 @@ public class Renderer extends MapRenderer {
             mc.setPixel(i,begin, MapPalette.BLUE);
             mc.setPixel(i,end, MapPalette.BLUE);
         }
+        int px = (int) ((p.getLocation().getBlockX() - mv.getCenterX()) / (sizemod / 2) + 64);
+        int pz = (int) ((p.getLocation().getBlockZ() - mv.getCenterZ()) / (sizemod / 2) + 64);
         if (System.currentTimeMillis() % 1000 < 500) {
-            int px = (int) ((p.getLocation().getBlockX() - mv.getCenterX()) / (sizemod / 2) + 64);
-            int pz = (int) ((p.getLocation().getBlockZ() - mv.getCenterZ()) / (sizemod / 2) + 64);
             mc.setPixel(px,pz,MapPalette.RED);
             mc.setPixel(px-1,pz-1,MapPalette.RED);
             mc.setPixel(px-1,pz+1,MapPalette.RED);
             mc.setPixel(px+1,pz-1,MapPalette.RED);
             mc.setPixel(px+1,pz+1,MapPalette.RED);
+        }
+        else {
+            mc.setPixel(px,pz,mc.getBasePixel(px,pz));
+            mc.setPixel(px-1,pz-1,mc.getBasePixel(px-1,pz-1));
+            mc.setPixel(px-1,pz+1,mc.getBasePixel(px-1,pz+1));
+            mc.setPixel(px+1,pz-1,mc.getBasePixel(px+1,pz-1));
+            mc.setPixel(px+1,pz+1,mc.getBasePixel(px+1,pz+1));
+        }
+        if ((px != px_old)||(pz != pz_old)) {
+            mc.setPixel(px_old,pz_old,mc.getBasePixel(px_old,pz_old));
+            mc.setPixel(px_old-1,pz_old-1,mc.getBasePixel(px_old-1,pz_old-1));
+            mc.setPixel(px_old-1,pz_old+1,mc.getBasePixel(px_old-1,pz_old+1));
+            mc.setPixel(px_old+1,pz_old-1,mc.getBasePixel(px_old+1,pz_old-1));
+            mc.setPixel(px_old+1,pz_old+1,mc.getBasePixel(px_old+1,pz_old+1));
+            px_old = px;
+            pz_old = pz;
         }
     }
 }

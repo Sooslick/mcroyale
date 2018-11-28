@@ -104,7 +104,7 @@ public class zone implements CommandExecutor
         wb = w.getWorldBorder();
         wb.setSize(zs);
         wb.setCenter(xc,zc);
-        wb.setDamageBuffer(100);
+        wb.setDamageBuffer(0);
         wb.setDamageAmount(CFG.getDouble("ZoneStartDamage", 0.01));
         dmg = CFG.getDouble("ZoneDamageMultiplier", 2);
         eltimer = 300;
@@ -211,8 +211,12 @@ public class zone implements CommandExecutor
                         wb.setCenter(xc, zc);   // *= "NewZoneSizeMultiplier"
                         nzs *= nzs_mpl;            //pre-set new size-center
                         //check if last zone (no center offset)
-                        if (nzs < CFG.getInt("EndZoneSize", 100))
+                        if (nzs < CFG.getInt("EndZoneSize", 100)) {
                             nzs = 0;
+                            zsht = 3000;    //2.5 minutes to shrink
+                            //todo cfg!
+                            //todo: cfg comments + field order
+                        }
                             //set new center if enabled
                         else if (CFG.getBoolean("EnableCenterOffset", true)) {
                             nxc += Math.random() * (ozs - nzs) - nzs / 2;
@@ -363,8 +367,9 @@ public class zone implements CommandExecutor
                                 PlayerInventory inv = Bukkit.getPlayer(pn).getInventory();
                                 if (inv.contains(Material.ELYTRA))
                                     inv.remove(Material.ELYTRA);
-                                if (inv.getChestplate().getType() == Material.ELYTRA)
-                                    inv.setChestplate(new ItemStack(Material.AIR));
+                                if (inv.getChestplate() != null)
+                                    if (inv.getChestplate().getType() == Material.ELYTRA)
+                                        inv.setChestplate(new ItemStack(Material.AIR));
                             }
                         }
                     }
@@ -376,7 +381,7 @@ public class zone implements CommandExecutor
             if (aliveTeams<=1)
             {
                 //fid alive squad
-                squad f = plugin.EmptySquad;
+                squad f = null;
                 for (squad s : Teams)
                     if (s.HaveAlive()) {
                         f = s;
@@ -417,10 +422,11 @@ public class zone implements CommandExecutor
                                 p.sendMessage("§cYou are not in safe zone! Type §6/zone §cfor details");
                                 Alerts.put(p, (p.getLocation().getBlockY()+10)*25);
                             }
+                            //TODO fix
                             //damage if outside
-                            if (!wb.isInside(ploc)) {
-                                Bukkit.getPluginManager().callEvent(new EntityDamageEvent(p, EntityDamageEvent.DamageCause.SUFFOCATION, wb.getDamageAmount()));
-                            }
+                            //if (!wb.isInside(ploc)) {
+                            //    Bukkit.getPluginManager().callEvent(new EntityDamageEvent(p, EntityDamageEvent.DamageCause.SUFFOCATION, wb.getDamageAmount()));
+                            //}
                         }
                     }
             }

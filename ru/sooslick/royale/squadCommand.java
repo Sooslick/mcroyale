@@ -20,9 +20,22 @@ public class squadCommand implements CommandExecutor {
             sender.sendMessage("§c[Royale] req royale.squad permission");
             return true;
         }
+        if (args.length == 0)
+        {
+            sender.sendMessage("§6Squad commands: create, invite, accept, decline, kick, disband, view, leave, list");
+            return true;
+        }
         if (args[0].equals("list"))
         {
             plugin.sendSquadList(sender);
+            return true;
+        }
+        if (args[0].equals("view"))
+        {
+            if (args.length == 1)
+                plugin.onSquadView((Player)sender, "");
+            else
+                plugin.onSquadView((Player)sender, args[1]);
             return true;
         }
         if (plugin.GameZone.GameActive)
@@ -33,11 +46,6 @@ public class squadCommand implements CommandExecutor {
         if (!(sender instanceof Player))
         {
             sender.sendMessage("§c[Royale] console are banned from battle royale. Console is cheater!");
-            return true;
-        }
-        if (args.length == 0)
-        {
-            sender.sendMessage("§6Squad commands: create, invite, accept, decline, kick, disband, view, leave, list");
             return true;
         }
         if (args[0].equals("create"))
@@ -84,14 +92,6 @@ public class squadCommand implements CommandExecutor {
             plugin.onSquadDisband((Player)sender);
             return true;
         }
-        if (args[0].equals("view"))
-        {
-            if (args.length == 1)
-                plugin.onSquadView((Player)sender, "");
-            else
-                plugin.onSquadView((Player)sender, args[1]);
-            return true;
-        }
         if (args[0].equals("leave"))
         {
             plugin.onSquadLeave((Player)sender);
@@ -104,7 +104,7 @@ public class squadCommand implements CommandExecutor {
                 return true;
             }
             squad s = plugin.getSquad((Player)sender);
-            if (s.equals(plugin.EmptySquad)) {
+            if (s == null) {
                 sender.sendMessage("§c[Royale] You are not in squad!");
                 return true;
             }

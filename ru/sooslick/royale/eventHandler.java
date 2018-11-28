@@ -107,7 +107,7 @@ public class eventHandler implements Listener {
             squad s = R.getSquad(p);
             if (s.GetAlives().contains(p.getName())) {
                 s.KillPlayer(p.getName());
-                R.InvToChest(p);        //TODO save inv
+                R.InvToChest(p);
                 p.getInventory().clear();
                 R.clearArmor(p);
                 R.Leavers.add(p);
@@ -216,6 +216,8 @@ public class eventHandler implements Listener {
         return;
     }
 
+    //TODO zone block placing
+    /*
     @EventHandler
     public void onBlockPlace(PlayerInteractEvent e)
     {
@@ -258,4 +260,5 @@ public class eventHandler implements Listener {
                 break;
         }
     }
+    */
 }
