@@ -37,9 +37,9 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
     public World w;
     public Scoreboard sb;
     public Team tm;
-    private ArrayList<squad> Squads = new ArrayList<>();
+    public ArrayList<squad> Squads = new ArrayList<>();
     private ArrayList<squadInvite> Invites = new ArrayList<>();
-    public ArrayList<Player> Leavers = new ArrayList<>();
+    public ArrayList<String> Leavers = new ArrayList<>();
     public ArrayList<Player> Votestarters= new ArrayList<>();
     public int StartGameTimer = 60;
     public boolean StartGameCountdown = false;
@@ -155,6 +155,7 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
         for (Player p : Bukkit.getOnlinePlayers())
         {
             tm.addEntry(p.getName());
+            p.setScoreboard(sb);
             boolean found = false;
             for (squad s : Squads)
                 if (s.HasPlayer(p.getName())) {found = true; break;}
@@ -168,6 +169,8 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
             p.setCompassTarget(new Location(w, 0, 0, 0));
             p.getInventory().addItem(new ItemStack(Material.COMPASS));
             p.setGameMode(GameMode.SURVIVAL);
+            p.setFoodLevel(20);
+            p.setHealth(20);
             GameZone.alive++;
         }
 
@@ -245,7 +248,7 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
         Invites.clear();
         Leavers.clear();
         Votestarters.clear();
-        tm.getEntries().clear();
+        //tm.getEntries()
         ShutDownTimer = CFG.getInt("PostGameShutDownTimer", 60);
         ShutDownCountdown = false;
         for (Player p : Bukkit.getOnlinePlayers()) {
@@ -687,7 +690,7 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
                 return true;
             }
             if (args[0].equals("reload")) {
-                reloadConfig();
+                reloadConfig();                 //todo debug
                 configFixMissing();
                 sender.sendMessage("Config reloaded. ");
                 return true;
@@ -698,11 +701,11 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
                 return true;
             }
             if (args[0].equals("defaults")) {
-                sender.sendMessage("we don't realize this feature at the moment ");
+                sender.sendMessage("we don't realize this feature at the moment "); //todo
                 return true;
             }
             if (args[0].equals("setparam")) {
-                sender.sendMessage("we don't realize this feature at the moment ");
+                sender.sendMessage("we don't realize this feature at the moment "); //todo
                 return true;
             }
             sender.sendMessage("Wrong command");
@@ -810,7 +813,7 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
             CFG.set("StartFallHeight", 2500);
             LOG.info("[ROYALE] Fixed start height to elytra flight. New height is 2500 blocks");
         }
-        if (CFG.getMapList("MonsterSpawns").size()==0)
+        if (CFG.getConfigurationSection("MonsterSpawns").getKeys(false).size()==0)
             LOG.info("[Royale] MonsterSpawns list is empty?");
         if (CFG.getInt("MinVotestarts", 3)<1) {
             CFG.set("MinVotestarts", 3);

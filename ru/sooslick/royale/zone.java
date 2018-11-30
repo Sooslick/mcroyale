@@ -213,8 +213,8 @@ public class zone implements CommandExecutor
                         //check if last zone (no center offset)
                         if (nzs < CFG.getInt("EndZoneSize", 100)) {
                             nzs = 0;
-                            zsht = 3000;    //2.5 minutes to shrink
-                            //todo cfg!
+                            zsht = 3600;    //3 minutes to shrink
+                            //todo cfg this value: blocks per second
                             //todo: cfg comments + field order
                         }
                             //set new center if enabled

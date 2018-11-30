@@ -1,6 +1,7 @@
 package ru.sooslick.royale;
 
 import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -56,44 +57,61 @@ public class royaleCommand implements CommandExecutor {
 
         if ((args[0].equals("join")) || (args[0].equals("joingame")) )
         {
-            if (plugin.GameZone.GameActive)
-            {
-                //TODO check if player has perms or player is playing right now
-                if (plugin.GameZone.FirstZone)
-                {
-                    if (args.length==1) {
-                        if (sender instanceof Player) {
-                            Player p = (Player) sender;
-                            squad s = plugin.onSquadCreate(p, p.getName());
-                            plugin.GameZone.addTeam(s);
-                            p.getInventory().clear();
-                            plugin.clearArmor(p);
-                            plugin.tm.addEntry(p.getName());
-                            p.teleport(plugin.RandomLocation(plugin.CFG.getInt("StartZoneSize", 2048) - 100));
-                            Bukkit.broadcastMessage("§aPlayer " + p.getName() + " joined to game and teleported to random location!");
-                        } else
-                            sender.sendMessage("§cConsole can't play royale :c");
+            if (!plugin.GameZone.GameActive) {
+                sender.sendMessage("§cGame is not started.");
+                return true;
+            }
+            //TODO check if player has perms or player is playing right now
+            if (!plugin.GameZone.FirstZone) {
+                sender.sendMessage("§cYou are too late...");
+                return true;
+            }
+            //join self
+            if (args.length==1) {
+                if (sender instanceof Player) {
+                    Player p = (Player) sender;
+                    squad s = plugin.getSquad(p);
+                    if (s == null) {
+                        s = new squad(p, p.getName());
+                        plugin.GameZone.addTeam(s);
+                        plugin.Squads.add(s);
                     }
-                    else {
-                        String pn = args[1];
-                        for (Player p : Bukkit.getOnlinePlayers()) {
-                            if (p.getName().equals(pn)) {
-                                squad s = plugin.onSquadCreate(p, p.getName());
-                                plugin.GameZone.addTeam(s);
-                                p.getInventory().clear();
-                                plugin.clearArmor(p);
-                                plugin.tm.addEntry(p.getName());
-                                p.teleport(plugin.RandomLocation(plugin.CFG.getInt("StartZoneSize", 2048) - 100));
-                                Bukkit.broadcastMessage("§aPlayer " + p.getName() + " joined to game and teleported to random location!");
-                            }
+                    p.getInventory().clear();
+                    plugin.clearArmor(p);
+                    p.setGameMode(GameMode.SURVIVAL);
+                    p.setHealth(20);                        //todo: refactor. Player respawn method
+                    p.setFoodLevel(20);
+                    s.RevivePlayer(p.getName());
+                    plugin.tm.addEntry(p.getName());
+                    p.teleport(plugin.RandomLocation(plugin.CFG.getInt("StartZoneSize", 2048) - 100));
+                    Bukkit.broadcastMessage("§aPlayer " + p.getName() + " joined to game and teleported to random location!");
+                } else
+                    sender.sendMessage("§cConsole can't play royale :c");
+            }
+            //join smth else
+            else {
+                String pn = args[1];
+                for (Player p : Bukkit.getOnlinePlayers()) {
+                    if (p.getName().equals(pn)) {
+                        squad s = plugin.getSquad(p);
+                        if (s == null) {
+                            s = new squad(p, p.getName());
+                            plugin.GameZone.addTeam(s);
+                            plugin.Squads.add(s);
                         }
-                        sender.sendMessage("§cCan't find player " + pn);
+                        p.getInventory().clear();
+                        plugin.clearArmor(p);
+                        p.setGameMode(GameMode.SURVIVAL);
+                        p.setHealth(20);                        //todo: refactor. Player respawn method
+                        p.setFoodLevel(20);
+                        s.RevivePlayer(p.getName());
+                        plugin.tm.addEntry(p.getName());
+                        p.teleport(plugin.RandomLocation(plugin.CFG.getInt("StartZoneSize", 2048) - 100));
+                        Bukkit.broadcastMessage("§aPlayer " + p.getName() + " joined to game and teleported to random location!");
                     }
                 }
-                else
-                    sender.sendMessage("§cYou are too late...");
+                sender.sendMessage("§cCan't find player " + pn);
             }
-            sender.sendMessage("§cGame is not started.");
             return true;
         }
 

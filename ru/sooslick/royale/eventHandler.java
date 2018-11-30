@@ -27,13 +27,24 @@ public class eventHandler implements Listener {
 
     private royale R;
     private zone Z;
+    private String cause = "";
+    private String by = "";
+    private Runnable DEATH_MESSAGE;
     public eventHandler(royale rt) {
         R = rt;
         Z = R.GameZone;
+        this.DEATH_MESSAGE = new Runnable() {
+            @Override
+            public void run()
+            {
+                Bukkit.broadcastMessage(cause + by + "!");
+                R.alertEveryone("§c[Royale] " + Z.alive + " players left!");
+            }
+        };
     }
 
     //todo: messages, event type + refactor
-    @EventHandler(priority = EventPriority.NORMAL)
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void OnDamage(EntityDamageEvent e)
     {
         if (Z.GameActive)
@@ -48,38 +59,54 @@ public class eventHandler implements Listener {
                 if (p1.getHealth() - e.getDamage() <= 0)
                 {
                     R.InvToChest(p1);
-                    String cause = "";
-                    if (e.getCause()==EntityDamageEvent.DamageCause.BLOCK_EXPLOSION) cause = " turned into gibs! ";
-                    else if (e.getCause()==EntityDamageEvent.DamageCause.CONTACT) cause = " cactused! ";
-                    else if (e.getCause()==EntityDamageEvent.DamageCause.CUSTOM) cause = " got some bad stuff! ";
-                    else if (e.getCause()==EntityDamageEvent.DamageCause.DROWNING) cause = " drank himself to dead! ";
-                    else if (e.getCause()==EntityDamageEvent.DamageCause.ENTITY_EXPLOSION) cause = " had a pookan explosion! ";
-                    else if (e.getCause()==EntityDamageEvent.DamageCause.FALL) cause = " found some ALMI! ";
-                    else if (e.getCause()==EntityDamageEvent.DamageCause.FALLING_BLOCK) cause = " smashed his skull! ";
-                    else if (e.getCause()==EntityDamageEvent.DamageCause.FIRE) cause = "'s perdak burned out! ";
-                    else if (e.getCause()==EntityDamageEvent.DamageCause.FIRE_TICK) cause = "'s perdak burned out! ";
-                    else if (e.getCause()==EntityDamageEvent.DamageCause.LAVA) cause = " feels like a Terminator! ";
-                    else if (e.getCause()==EntityDamageEvent.DamageCause.LIGHTNING) cause = " caught the lightning! ";
-                    else if (e.getCause()==EntityDamageEvent.DamageCause.MAGIC) cause = " caught some bad stuff! ";
-                    else if (e.getCause()==EntityDamageEvent.DamageCause.MELTING) cause = " frozen! ";
-                    else if (e.getCause()==EntityDamageEvent.DamageCause.POISON) cause = " drank some bad stuff! ";
+                    if (e.getCause()==EntityDamageEvent.DamageCause.BLOCK_EXPLOSION) cause = " turned into gibs";
+                    else if (e.getCause()==EntityDamageEvent.DamageCause.CONTACT) cause = " cactused";
+                    else if (e.getCause()==EntityDamageEvent.DamageCause.CUSTOM) cause = " got some bad stuff";
+                    else if (e.getCause()==EntityDamageEvent.DamageCause.DROWNING) cause = " drank himself to dead";
+                    else if (e.getCause()==EntityDamageEvent.DamageCause.ENTITY_EXPLOSION) cause = " had a pookan explosion";
+                    else if (e.getCause()==EntityDamageEvent.DamageCause.FALL) cause = " found some ALMI";
+                    else if (e.getCause()==EntityDamageEvent.DamageCause.FALLING_BLOCK) cause = " smashed his skull";
+                    else if (e.getCause()==EntityDamageEvent.DamageCause.FIRE) cause = "'s perdak burned out";
+                    else if (e.getCause()==EntityDamageEvent.DamageCause.FIRE_TICK) cause = "'s perdak burned out";
+                    else if (e.getCause()==EntityDamageEvent.DamageCause.LAVA) cause = " feels like a Terminator";
+                    else if (e.getCause()==EntityDamageEvent.DamageCause.LIGHTNING) cause = " caught the lightning";
+                    else if (e.getCause()==EntityDamageEvent.DamageCause.MAGIC) cause = " caught some bad stuff";
+                    else if (e.getCause()==EntityDamageEvent.DamageCause.MELTING) cause = " frozen";
+                    else if (e.getCause()==EntityDamageEvent.DamageCause.POISON) cause = " drank some bad stuff";
+                    else if (e.getCause()==EntityDamageByEntityEvent.DamageCause.PROJECTILE) cause = " shooted";
+                    else if (e.getCause()==EntityDamageByEntityEvent.DamageCause.ENTITY_ATTACK) cause = " killed";
+                    else if (e.getCause()==EntityDamageByEntityEvent.DamageCause.ENTITY_EXPLOSION) cause = " boomed";
+                    else if (e.getCause()==EntityDamageByEntityEvent.DamageCause.ENTITY_SWEEP_ATTACK) cause = " accidentally killed";
                     else if (e.getCause()==EntityDamageEvent.DamageCause.SUFFOCATION) {
                         if (!Z.wb.isInside(p1.getLocation()))
-                            cause = " died outside gamezone! ";
+                            cause = " died outside gamezone";
                         else
-                            cause = " buried alive! ";
+                            cause = " buried alive";
                     }
-                    else cause = " sucked! ";
+                    else cause = " sucked";
                     p1.setHealth(20);
                     p1.setGameMode(GameMode.SPECTATOR);
                     squad s = R.getSquad(p1);
                     s.KillPlayer(p1.getName());
-                    R.alertEveryone("§c[Royale] " + p1.getName() + cause);
+                    cause = "§c[Royale] " + p1.getName() + cause;
                     Z.alive = Z.alivePlayers();
                     Z.aliveTeams = Z.aliveTeams();
-                    R.alertEveryone("§c[Royale] " + Z.alive + " players left!");
-                    e.setCancelled(true);
+                    R.getServer().getScheduler().scheduleSyncDelayedTask(R, DEATH_MESSAGE, 1);
                 }
+            }
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGH)
+    public void OnDamageBy(EntityDamageByEntityEvent e)
+    {
+        if (Z.GameActive)
+        {
+            if (e.getEntity() instanceof Player)
+            {
+                Player p1 = (Player) e.getEntity();
+                String dmgr = e.getDamager().getName();
+                by = " by " + dmgr;
             }
         }
     }
@@ -88,14 +115,14 @@ public class eventHandler implements Listener {
     public void OnJoin(PlayerJoinEvent e) {
         Player p = e.getPlayer();
         p.setGameMode(GameMode.SPECTATOR);  //force spectator
-        if ((Z.GameActive) && R.Leavers.contains(p))
+        if ((Z.GameActive) && R.Leavers.contains(p.getName()))
         {
             squad s = R.getSquad(p);
             s.RevivePlayer(p.getName());
             p.setGameMode(GameMode.SURVIVAL);
             p.getInventory().clear();
             R.clearArmor(p);
-            R.Leavers.remove(p);
+            R.Leavers.remove(p.getName());
             R.alertEveryone("§a[Royale] Player "+p.getName()+" reconnected and revived!");
         }
     }
@@ -110,7 +137,7 @@ public class eventHandler implements Listener {
                 R.InvToChest(p);
                 p.getInventory().clear();
                 R.clearArmor(p);
-                R.Leavers.add(p);
+                R.Leavers.add(p.getName());
                 R.alertEveryone("§c[Royale] Player " + p.getName() + " disconnected");
             }
         }
