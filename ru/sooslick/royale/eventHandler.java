@@ -233,11 +233,18 @@ public class eventHandler implements Listener {
         else {
             EntityType et = e.getEntityType();
             for (String k : Z.CFG.getConfigurationSection("MonsterSpawns").getKeys(false))
-                if (et.getName().equals(k))
+                if (et.getName().equals(k)) {
+                    if (!Z.mob_despawned.containsKey(k)) {
+                        Z.mob_despawned.put(k,0);
+                        Z.mob_total.put(k,0);
+                    }
+                    Z.mob_total.put(k, Z.mob_total.get(k)+1);
                     if (Math.random() > Z.CFG.getConfigurationSection("MonsterSpawns").getDouble(k, 1)) {
+                        Z.mob_despawned.put(k, Z.mob_despawned.get(k)+1);
                         e.setCancelled(true);
                         return;
                     }
+                }
             //todo log monster info
         }
         return;

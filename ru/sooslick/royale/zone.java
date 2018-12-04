@@ -7,7 +7,6 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.TNTPrimed;
-import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.map.MapView;
@@ -65,6 +64,9 @@ public class zone implements CommandExecutor
     private HashMap<Player, Integer> Alerts = new HashMap<>();
     public int alive;
     public int aliveTeams;
+    public HashMap<String, Integer> mob_despawned = new HashMap<>();
+    public HashMap<String, Integer> mob_total = new HashMap<>();
+    public int mob_timer;
 
     public void init(World world)
     {
@@ -114,6 +116,10 @@ public class zone implements CommandExecutor
         Flyers.clear();
         alive = 0;
         aliveTeams = 0;
+
+        mob_despawned.clear();
+        mob_total.clear();
+        mob_timer = 1200;
     }
 
     public void startgame()
@@ -230,7 +236,7 @@ public class zone implements CommandExecutor
                         Bukkit.broadcastMessage("§4[name:\"Zone Center\", x:"+Integer.toString((int) nxc)+",y:0,z:"+Integer.toString((int) nzc)+"]");
                         //map item
                         if (CFG.getBoolean("GiveZoneMap")) {
-                            //todo: common squad map + /zone marker x y feature
+                            //todo: common squad map + /zone marker x y feature refactor this
                             if (nzs >= 100) {
                                 int sc;
                                 for (Player pl : Bukkit.getOnlinePlayers())
@@ -243,14 +249,14 @@ public class zone implements CommandExecutor
                                     zmr.setUnlimitedTracking(true);
                                     zmr.setCenterX((int) nxc);
                                     zmr.setCenterZ((int) nzc);
-                                    if (nzs < 128) {zmr.setScale(MapView.Scale.CLOSEST); sc = 2;}
-                                    else if (nzs < 256) {zmr.setScale(MapView.Scale.CLOSE); sc = 4;}
-                                    else if (nzs < 512) {zmr.setScale(MapView.Scale.NORMAL); sc = 8;}
-                                    else if (nzs < 1024) {zmr.setScale(MapView.Scale.FAR); sc = 16;}
+                                    if (nzs < 64) {zmr.setScale(MapView.Scale.CLOSEST); sc = 2;}
+                                    else if (nzs < 128) {zmr.setScale(MapView.Scale.CLOSE); sc = 4;}
+                                    else if (nzs < 256) {zmr.setScale(MapView.Scale.NORMAL); sc = 8;}
+                                    else if (nzs < 512) {zmr.setScale(MapView.Scale.FAR); sc = 16;}
                                     else {zmr.setScale(MapView.Scale.FARTHEST); sc = 32;}
                                     Renderer r = new Renderer();
                                     r.initialize(zmr);
-                                    r.init((int)nzs, sc);
+                                    r.init((int)nzs, sc, wb);
                                     zmr.addRenderer(r);
                                     zonemap.setDurability(zmr.getId());
                                     pl.getInventory().addItem(zonemap);
@@ -392,43 +398,50 @@ public class zone implements CommandExecutor
             }
 
             //Alert processor + player damage by zone
-            {
-                for (squad s : Teams)
-                    for (String pn : s.GetAlives())
-                    {
-                        Player p = Bukkit.getPlayer(pn);
-                        Location ploc = p.getLocation();
+            for (squad s : Teams)
+                for (String pn : s.GetAlives())
+                {
+                    Player p = Bukkit.getPlayer(pn);
+                    Location ploc = p.getLocation();
 
-                        //check in new zone
-                        if ((ploc.getBlockX() > nxc - nzs/2) &&
-                                (ploc.getBlockX() < nxc + nzs/2) &&
-                                (ploc.getBlockZ() > nzc - nzs/2) &&
-                                (ploc.getBlockZ() < nzc + nzs/2))
-                            continue;
-                        else
+                    //check in new zone
+                    if ((ploc.getBlockX() > nxc - nzs/2) &&
+                            (ploc.getBlockX() < nxc + nzs/2) &&
+                            (ploc.getBlockZ() > nzc - nzs/2) &&
+                            (ploc.getBlockZ() < nzc + nzs/2))
+                        continue;
+                    else
+                    {
+                        if (Alerts.containsKey(p))
                         {
-                            if (Alerts.containsKey(p))
-                            {
-                                if (Alerts.get(p) < 0)
-                                {
-                                    p.sendMessage("§cYou are not in safe zone! Type §6/zone §cfor details");
-                                    Alerts.replace(p, (p.getLocation().getBlockY()+10)*25);
-                                }
-                                else
-                                    Alerts.replace(p, Alerts.get(p) - freq);
-                            }
-                            else
+                            if (Alerts.get(p) < 0)
                             {
                                 p.sendMessage("§cYou are not in safe zone! Type §6/zone §cfor details");
-                                Alerts.put(p, (p.getLocation().getBlockY()+10)*25);
+                                Alerts.replace(p, (p.getLocation().getBlockY()+10)*25);
                             }
-                            //TODO fix
-                            //damage if outside
-                            //if (!wb.isInside(ploc)) {
-                            //    Bukkit.getPluginManager().callEvent(new EntityDamageEvent(p, EntityDamageEvent.DamageCause.SUFFOCATION, wb.getDamageAmount()));
-                            //}
+                            else
+                                Alerts.replace(p, Alerts.get(p) - freq);
                         }
+                        else
+                        {
+                            p.sendMessage("§cYou are not in safe zone! Type §6/zone §cfor details");
+                            Alerts.put(p, (p.getLocation().getBlockY()+10)*25);
+                        }
+                        //TODO fix
+                        //damage if outside
+                        //if (!wb.isInside(ploc)) {
+                        //    Bukkit.getPluginManager().callEvent(new EntityDamageEvent(p, EntityDamageEvent.DamageCause.SUFFOCATION, wb.getDamageAmount()));
+                        //}
                     }
+                }
+
+            //debug monster log
+            mob_timer-= freq;
+            if (mob_timer <= 0) {
+                mob_timer = 1200;
+                for (String et : mob_total.keySet()) {
+                    plugin.LOG.info("[Royale Monster Log] " + et + " " + mob_despawned.get(et).toString() + "/" + mob_total.get(et) + " despawned");
+                }
             }
 
             //debug log

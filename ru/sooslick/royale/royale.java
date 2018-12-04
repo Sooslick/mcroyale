@@ -15,6 +15,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -57,16 +58,24 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
         try {
             if (!getDataFolder().exists()) {
                 getDataFolder().mkdir();
-                saveDefaultConfig();
                 LOG.info("[Royale] DataFolder created");
             }
         } catch (Exception ex) {
             LOG.warning("[Royale] " + ex);
+            LOG.warning("[Royale] Has server necessary permissions to rw datafolder?");
         }
-        //todo check if cfg !exists
+        try {
+            File f = new File(getDataFolder().toString() + File.separator + "plugin.yml" );
+            if (!f.exists()) {
+                saveDefaultConfig();
+                LOG.info("[Royale] Default config created!");
+            }
+        } catch (Exception ex) {
+            LOG.warning("[Royale] " + ex);
+        }
         this.CFG = getConfig();
         configFixMissing();
-        this.saveConfig();
+        this.saveConfig();              //todo save config problems
         this.reloadConfig();
         LOG.info("[Royale] Read config");
 
@@ -202,7 +211,7 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
                 zmr.setScale(MapView.Scale.FARTHEST);
                 int sc = 32;
                 Renderer r = new Renderer();
-                r.init(2055, sc);
+                r.init(2055, sc, w.getWorldBorder());
                 zmr.addRenderer(r);
                 zonemap.setDurability(zmr.getId());
                 p.getInventory().addItem(zonemap);
