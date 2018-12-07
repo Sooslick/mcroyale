@@ -67,6 +67,7 @@ public class zone implements CommandExecutor
     public HashMap<String, Integer> mob_despawned = new HashMap<>();
     public HashMap<String, Integer> mob_total = new HashMap<>();
     public int mob_timer;
+    private ArrayList<Location> ChestCreated = new ArrayList<>();
 
     public void init(World world)
     {
@@ -464,6 +465,22 @@ public class zone implements CommandExecutor
             plugin.zonelog(s);
             */
         }
+    }
+
+    public void trackChest(Location l) {
+        if (!ChestCreated.contains(l))
+            ChestCreated.add(l);
+    }
+
+    public void restoreChests() {
+        for (Location l : ChestCreated) {
+            if (l.getBlock().getType().equals(Material.CHEST))
+                l.getBlock().setType(Material.MOSSY_COBBLESTONE);   //todo cfg
+            else
+                l.getBlock().setType(Material.AIR);
+        }
+        Bukkit.getConsoleSender().sendMessage("[Royale] restored " + ChestCreated.size() + " containters.");
+        ChestCreated.clear();
     }
 
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args)

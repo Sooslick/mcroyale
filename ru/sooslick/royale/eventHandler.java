@@ -3,6 +3,7 @@ package ru.sooslick.royale;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
+import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
@@ -250,49 +251,44 @@ public class eventHandler implements Listener {
         return;
     }
 
-    //TODO zone block placing
-    /*
+    //TODO zone block placing player interact event
+
     @EventHandler
-    public void onBlockPlace(PlayerInteractEvent e)
+    public void onBlockClick(PlayerInteractEvent e) {
+        if (e.isCancelled())
+            return;
+        if (!e.getAction().equals(Action.RIGHT_CLICK_BLOCK))
+            return;
+        checkContainer(e.getClickedBlock());
+    }
+
+    @EventHandler
+    public void onBlockPlace(BlockPlaceEvent e)
     {
         if (e.isCancelled())
             return;
 
-        if (!e.getAction().equals(Action.RIGHT_CLICK_BLOCK))
-            return;
-
-        if (Z.wb.isInside(e.getPlayer().getLocation()))
-            return;
-
-        if (!e.getItem().getType().isBlock())
-            return;
-
-        switch (e.getBlockFace()) {
-            case DOWN:
-                R.w.getBlockAt(e.getClickedBlock().getX(), e.getClickedBlock().getY()-1, e.getClickedBlock().getZ()).setType(e.getItem().getType());
-                e.getItem().setAmount(e.getItem().getAmount()-1);
-                break;
-            case UP:
-                R.w.getBlockAt(e.getClickedBlock().getX(), e.getClickedBlock().getY()+1, e.getClickedBlock().getZ()).setType(e.getItem().getType());
-                e.getItem().setAmount(e.getItem().getAmount()-1);
-                break;
-            case NORTH:
-                R.w.getBlockAt(e.getClickedBlock().getX(), e.getClickedBlock().getY(), e.getClickedBlock().getZ()-1).setType(e.getItem().getType());
-                e.getItem().setAmount(e.getItem().getAmount()-1);
-                break;
-            case SOUTH:
-                R.w.getBlockAt(e.getClickedBlock().getX(), e.getClickedBlock().getY(), e.getClickedBlock().getZ()+1).setType(e.getItem().getType());
-                e.getItem().setAmount(e.getItem().getAmount()-1);
-                break;
-            case EAST:
-                R.w.getBlockAt(e.getClickedBlock().getX()-1, e.getClickedBlock().getY(), e.getClickedBlock().getZ()).setType(e.getItem().getType());
-                e.getItem().setAmount(e.getItem().getAmount()-1);
-                break;
-            case WEST:
-                R.w.getBlockAt(e.getClickedBlock().getX()+1, e.getClickedBlock().getY()-1, e.getClickedBlock().getZ()).setType(e.getItem().getType());
-                e.getItem().setAmount(e.getItem().getAmount()-1);
-                break;
-        }
+        checkContainer(e.getBlockPlaced());
     }
-    */
+
+    private void checkContainer(Block b) {
+        if (b.getType().equals(Material.CHEST))
+            Z.trackChest(b.getLocation());
+        else if (b.getType().equals(Material.FURNACE))
+            Z.trackChest(b.getLocation());
+        else if (b.getType().equals(Material.DISPENSER))
+            Z.trackChest(b.getLocation());
+        else if (b.getType().equals(Material.ENDER_CHEST))
+            Z.trackChest(b.getLocation());
+        else if (b.getType().equals(Material.TRAPPED_CHEST))
+            Z.trackChest(b.getLocation());
+        else if (b.getType().equals(Material.FURNACE))
+            Z.trackChest(b.getLocation());
+        else if (b.getType().equals(Material.HOPPER))
+            Z.trackChest(b.getLocation());
+        else if (b.getType().equals(Material.DROPPER))
+            Z.trackChest(b.getLocation());
+        else if (b.getType().equals(Material.BREWING_STAND))
+            Z.trackChest(b.getLocation());
+    }
 }

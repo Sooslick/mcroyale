@@ -1,6 +1,6 @@
 name: BattleRoyale
 main: ru.sooslick.royale.royale
-version: 0.2.0.10
+version: 0.2.0.12
 author: sooslick
 commands:
   royale:
@@ -18,5 +18,5 @@ commands:
     description: manages player's squads
     usage: /squad [command]
   rlconfig:
-    description: load settings from config.yml
+    description: manage BattleRoyale configuration
     usage: /rlconfig

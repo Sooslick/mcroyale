@@ -7,6 +7,7 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.inventory.ItemStack;
@@ -21,6 +22,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.logging.Logger;
 
 public class royale extends JavaPlugin implements CommandExecutor, Listener
@@ -67,16 +69,17 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
         try {
             File f = new File(getDataFolder().toString() + File.separator + "plugin.yml" );
             if (!f.exists()) {
-                saveDefaultConfig();
+                ROYALE.saveDefaultConfig();
                 LOG.info("[Royale] Default config created!");
             }
         } catch (Exception ex) {
             LOG.warning("[Royale] " + ex);
         }
-        this.CFG = getConfig();
-        configFixMissing();
-        this.saveConfig();              //todo save config problems
-        this.reloadConfig();
+        CFG = ROYALE.getConfig();          //assign original cfg file
+        configFixMissing();                 //write or repair bad fields
+        ROYALE.saveConfig();
+        ROYALE.reloadConfig();             //apply changes
+        CFG = ROYALE.getConfig();          //reassign repaired config
         LOG.info("[Royale] Read config");
 
         w = getServer().getWorlds().get(0); //get main world
@@ -155,11 +158,17 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
     //squad processor pre-start game
     public void onStartgameCmd()
     {
+        //check post-game status
+        if (ShutDownCountdown)
+            reset();
+        //check running game
         if (GameZone.GameActive)
         {
             LOG.warning("[Royale] onStartgameCmd error: game is running!");
             return;
         }
+        //clear tracked containers
+        GameZone.restoreChests();
         //create team 4 every player
         for (Player p : Bukkit.getOnlinePlayers())
         {
@@ -699,18 +708,24 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
                 return true;
             }
             if (args[0].equals("reload")) {
-                reloadConfig();                 //todo debug
+                ROYALE.reloadConfig();
                 configFixMissing();
+                CFG = ROYALE.getConfig();
                 sender.sendMessage("Config reloaded. ");
                 return true;
             }
             if (args[0].equals("save")) {
-                saveConfig();
+                ROYALE.saveConfig();
                 sender.sendMessage("Config saved. ");
                 return true;
             }
             if (args[0].equals("defaults")) {
-                sender.sendMessage("we don't realize this feature at the moment "); //todo
+                ROYALE.getConfig().options().copyDefaults(true);
+                ROYALE.saveConfig();
+                ROYALE.reloadConfig();
+                CFG = ROYALE.getConfig();
+                sender.sendMessage("Config rewrited to default. ");
+                //todo test: rly rewrites?
                 return true;
             }
             if (args[0].equals("setparam")) {
@@ -822,8 +837,12 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
             CFG.set("StartFallHeight", 2500);
             LOG.info("[ROYALE] Fixed start height to elytra flight. New height is 2500 blocks");
         }
-        if (CFG.getConfigurationSection("MonsterSpawns").getKeys(false).size()==0)
+        if (CFG.getConfigurationSection("MonsterSpawns").getKeys(false).size()==0) {
             LOG.info("[Royale] MonsterSpawns list is empty?");
+            HashMap<String, Double> hm = new HashMap<>();
+            hm.put(EntityType.ZOMBIE.toString(), 0.95);
+            CFG.createSection("MonsterSpawns", hm);
+        }
         if (CFG.getInt("MinVotestarts", 3)<1) {
             CFG.set("MinVotestarts", 3);
             LOG.info("[ROYALE] Fixed minimal number of players are voted to start to proceed. Game starts after 3 votes");
