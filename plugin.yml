@@ -1,6 +1,6 @@
 name: BattleRoyale
 main: ru.sooslick.royale.royale
-version: 0.2.0.12
+version: 0.2.0.14
 author: sooslick
 commands:
   royale:
@@ -12,7 +12,7 @@ commands:
     usage: /zone
   votestart:
     description: vote to launch royale game
-    aliases: v, vs
+    aliases: [v, vs]
     usage: /votestart
   squad:
     description: manages player's squads

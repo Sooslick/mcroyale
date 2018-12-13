@@ -140,7 +140,7 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
                 ShutDownTimer--;
                 if (ShutDownTimer < 0) {
                     alertEveryone("§a[Royale] Restarting server!");
-                    Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "stop");
+                    Bukkit.dispatchCommand(Bukkit.getConsoleSender(), CFG.getString("PostGameCommand", "stop"));
                 }
             }
         };
@@ -248,11 +248,11 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
 
     public void endgame()
     {
-        if (CFG.getBoolean("PostGameShutDown", true))
+        if (CFG.getBoolean("PostGameCommandEnable", true))
         {
-            ShutDownTimer = CFG.getInt("PostGameShutDownTimer", 60);
+            ShutDownTimer = CFG.getInt("PostGameCommandTimer", 60);
             ShutDownCountdown = true;
-            alertEveryone("§c[Royale] Game is ended. Server will be restarted in " + ShutDownTimer + " seconds!");
+            alertEveryone("§c[Royale] Game is ended!");
             SD_TASK_ID = getServer().getScheduler().scheduleSyncRepeatingTask(this, SD_PROCESSOR, 1, 20);
         }
         else
@@ -267,16 +267,13 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
         Leavers.clear();
         Votestarters.clear();
         //tm.getEntries()
-        ShutDownTimer = CFG.getInt("PostGameShutDownTimer", 60);
+        ShutDownTimer = CFG.getInt("PostGameCommandTimer", 60);
         ShutDownCountdown = false;
         for (Player p : Bukkit.getOnlinePlayers()) {
             p.setGameMode(GameMode.SPECTATOR);
             p.getInventory().clear();
             clearArmor(p);
         }
-        //todo this code requires testing. Something is wrong
-
-        //todo: track created chests and clear it
     }
 
     public void onStopgameCmd()
@@ -338,7 +335,6 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
 
     public void alertPlayer(String msg, Player p) {p.sendMessage(msg);}
 
-    //todo check dangerous locations
     public Location RandomLocation(int Max)
     {
         Location l = new Location(w, 0, 64, 0);
@@ -349,18 +345,21 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
             l.setZ(z);
             l.getChunk().load();
             int y = l.getWorld().getHighestBlockYAt(x, z);
-            if ((w.getBlockAt(x, y - 1, z).getTypeId() <= 11) && (w.getBlockAt(x, y - 1, z).getTypeId() >= 8))
+            //liquid
+            if ((w.getBlockAt(x, y, z).getTypeId() <= 11) && (w.getBlockAt(x, y, z).getTypeId() >= 8))
                 continue;
             int footTypeId = w.getBlockAt(x, y, z).getTypeId();
             if ((w.getBlockAt(x, y + 1, z).getTypeId() != 0) || ((footTypeId != 0) && (footTypeId != 78) && (footTypeId != 31) && (footTypeId != 32) && (footTypeId != 6)))
                 continue;
-            l.setY(y);
+            l.setY(y+1);
+            l.setX(l.getX()+0.5);
+            l.setZ(l.getZ()+0.5);
             return l;
         }
         return l;
     }
 
-    public squad onSquadCreate(Player creator, String name) //TODO boolean
+    public squad onSquadCreate(Player creator, String name)
     {
         squad s = getSquad(creator);
         //check if creator not in squad
@@ -369,14 +368,19 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
             Squads.add(s);
             alertPlayer("§a[Royale] Squad created!", creator);
             alertEveryone("§c[Royale] Squad \"" + s.name + "\" created!");
-            //todo: remove all pending invites with creator
+            //remove pending invites
+            for (squadInvite si : Invites) {
+                if (si.p.equals(creator)) {
+                    Invites.remove(creator);
+                    break;
+                }
+            }
         }
         else
             alertPlayer("§a[Royale] You are member of squad!", creator);
         return s;
     }
 
-    //todo: cfg squad members cap
     public void onSquadInvite(Player who,String whom)
     {
         squad s = getSquad(who);               //check if inviter in squad
@@ -424,7 +428,7 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
         alertPlayer("§a[Royale] You are invited in squad by " + who.getName(), p);
     }
 
-    public void onSquadInviteAccept(Player p) //TODO boolean
+    public void onSquadInviteAccept(Player p)
     {
         boolean found = false;
         for (squadInvite si : Invites)
@@ -450,7 +454,7 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
         }
     }
 
-    public void onSquadInviteDecline(Player p) //TODO boolean //why?
+    public void onSquadInviteDecline(Player p)
     {
         boolean found = false;
         squadInvite si11 = new squadInvite();       //TODO do same as accept
@@ -617,6 +621,7 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
         Location tempLoc = p.getLocation();
         Block tempBlock = tempLoc.getBlock();
         tempBlock.setType(Material.CHEST);
+        GameZone.trackChest(tempLoc);
         Chest c = (Chest) tempBlock.getState();
         int items = 0;
         for (ItemStack IS : p.getInventory().getContents())
@@ -630,27 +635,11 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
                     tempLoc.setX(tempLoc.getBlockX() + 1);
                     tempBlock = tempLoc.getBlock();
                     tempBlock.setType(Material.CHEST);
+                    GameZone.trackChest(tempLoc);
                     c = (Chest) tempBlock.getState();
                 }
             }
         }
-        /* there is a bug: armor dublicating in chest. Actual for older spigot versions?
-        for (ItemStack IS : p.getInventory().getArmorContents())
-        {
-            if (IS != null)
-            {
-                c.getInventory().addItem(IS);
-                items++;
-                if (items == 27)
-                {
-                    tempLoc.setX(tempLoc.getBlockX() + 1);
-                    tempBlock = tempLoc.getBlock();
-                    tempBlock.setType(Material.CHEST);
-                    c = (Chest) tempBlock.getState();
-                }
-            }
-        }
-        */
         p.getInventory().clear();
         clearArmor(p);
     }
@@ -723,6 +712,7 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
                 ROYALE.getConfig().options().copyDefaults(true);
                 ROYALE.saveConfig();
                 ROYALE.reloadConfig();
+                configFixMissing();
                 CFG = ROYALE.getConfig();
                 sender.sendMessage("Config rewrited to default. ");
                 //todo test: rly rewrites?
@@ -851,14 +841,23 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
             CFG.set("MinVotestartPercent", 0.5);
             LOG.info("[ROYALE] Fixed minimal percent of voted players to game start.");
         }
-        CFG.getBoolean("PostGameShutDown", true);
-        LOG.info("[ROYALE] Should the server automatically reboot after game? "+ Boolean.toString(CFG.getBoolean("PostGameShutDown")));
-        if (CFG.getInt("PostGameShutDownTime", 60)<1) {
-            CFG.set("PostGameShutDownTime", 60);
-            LOG.info("[ROYALE] Fixed time to shutdown server after game end. New time is 60 seconds.");
+        CFG.getBoolean("PostGameCommandEnable", true);
+        LOG.info("[ROYALE] Should the server automatically execute command after game? "+ Boolean.toString(CFG.getBoolean("PostGameCommandEnable")));
+        if (CFG.getInt("PostGameCommandTime", 60)<1) {
+            CFG.set("PostGameCommandTime", 60);
+            LOG.info("[ROYALE] Fixed time to execute command after game end. New time is 60 seconds.");
+        }
+        if (CFG.getString("PostGameCommand", "stop").equals("")) {
+            CFG.set("PostGameCommand", "stop");
+            LOG.info("[ROYALE] Fixed executing command after game end: /stop");
+        }
+        if (CFG.getInt("MaxSquadMembers", 4)<1) {
+            CFG.set("MaxSquadMembers", 4);
+            LOG.info("[ROYALE] Fixed max amount of players that may be in squad. Max squad members is 4 players.");
         }
 
-        // - Ограничитель количества мобов (и конкретных типов)
+        //fix static variables
+        squad.MaxMembers = CFG.getInt("MaxSquadMembers", 4);
 
         //- аирдроп вкл / выкл
         //    - Частота спавна

@@ -8,6 +8,7 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -30,6 +31,7 @@ public class eventHandler implements Listener {
     private zone Z;
     private String cause = "";
     private String by = "";
+    private Event dmgEvent;
     private Runnable DEATH_MESSAGE;
     public eventHandler(royale rt) {
         R = rt;
@@ -38,13 +40,15 @@ public class eventHandler implements Listener {
             @Override
             public void run()
             {
-                Bukkit.broadcastMessage(cause + by + "!");
+                if (dmgEvent.getClass().equals(EntityDamageByEntityEvent.class))
+                    Bukkit.broadcastMessage(cause + by + "!");
+                else
+                    Bukkit.broadcastMessage(cause + "!");
                 R.alertEveryone("§c[Royale] " + Z.alive + " players left!");
             }
         };
     }
 
-    //todo: messages, event type + refactor
     @EventHandler(priority = EventPriority.HIGHEST)
     public void OnDamage(EntityDamageEvent e)
     {
@@ -92,6 +96,7 @@ public class eventHandler implements Listener {
                     cause = "§c[Royale] " + p1.getName() + cause;
                     Z.alive = Z.alivePlayers();
                     Z.aliveTeams = Z.aliveTeams();
+                    dmgEvent = e;
                     R.getServer().getScheduler().scheduleSyncDelayedTask(R, DEATH_MESSAGE, 1);
                 }
             }
@@ -256,6 +261,8 @@ public class eventHandler implements Listener {
     @EventHandler
     public void onBlockClick(PlayerInteractEvent e) {
         if (e.isCancelled())
+            return;
+        if (e.getPlayer().getGameMode().equals(GameMode.SPECTATOR))
             return;
         if (!e.getAction().equals(Action.RIGHT_CLICK_BLOCK))
             return;

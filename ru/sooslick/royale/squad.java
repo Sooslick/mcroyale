@@ -10,6 +10,7 @@ public class squad {
     public String leader;
     private ArrayList<String> players = new ArrayList<>();
     private ArrayList<String> alives = new ArrayList<>();
+    static int MaxMembers = 4;
 
     public void Reset() {
         players.clear();
@@ -63,7 +64,7 @@ public class squad {
 
     public boolean HaveAlive() {return alives.size()>0;}
 
-    public boolean isFull() {return players.size()>=4;}
+    public boolean isFull() {return players.size()>=MaxMembers;}
 
     public int GetAliveCount(){return alives.size();}
 

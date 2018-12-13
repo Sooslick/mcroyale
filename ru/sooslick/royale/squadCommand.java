@@ -4,6 +4,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 
 /**
@@ -112,6 +113,7 @@ public class squadCommand implements CommandExecutor {
                 sender.sendMessage("§c[Royale] You are not the squad leader!");
                 return true;
             }
+            //todo similar name in other squad!
             Bukkit.broadcastMessage("§c[Royale] Now the squad \"" + s.name + "\" have new name \"" + args[1] + "\"!");
             s.name = args[1];
             sender.sendMessage("§a[Royale] Your squad renamed.");
