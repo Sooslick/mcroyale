@@ -2,6 +2,7 @@ package ru.sooslick.royale;
 
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -29,6 +30,7 @@ public class eventHandler implements Listener {
 
     private royale R;
     private zone Z;
+    private int alive;
     private String cause = "";
     private String by = "";
     private Event dmgEvent;
@@ -44,7 +46,7 @@ public class eventHandler implements Listener {
                     Bukkit.broadcastMessage(cause + by + "!");
                 else
                     Bukkit.broadcastMessage(cause + "!");
-                R.alertEveryone("§c[Royale] " + Z.alive + " players left!");
+                R.alertEveryone("§c[Royale] " + alive + " players left!");
             }
         };
     }
@@ -63,7 +65,7 @@ public class eventHandler implements Listener {
                 }
                 if (p1.getHealth() - e.getDamage() <= 0)
                 {
-                    R.InvToChest(p1);
+                    R.PlayerInvToChest(p1);
                     if (e.getCause()==EntityDamageEvent.DamageCause.BLOCK_EXPLOSION) cause = " turned into gibs";
                     else if (e.getCause()==EntityDamageEvent.DamageCause.CONTACT) cause = " cactused";
                     else if (e.getCause()==EntityDamageEvent.DamageCause.CUSTOM) cause = " got some bad stuff";
@@ -92,11 +94,12 @@ public class eventHandler implements Listener {
                     p1.setHealth(20);
                     p1.setGameMode(GameMode.SPECTATOR);
                     squad s = R.getSquad(p1);
-                    s.KillPlayer(p1.getName());
+                    s.killPlayer(p1.getName());
                     cause = "§c[Royale] " + p1.getName() + cause;
                     Z.alive = Z.alivePlayers();
-                    Z.aliveTeams = Z.aliveTeams();
+                    Z.aliveTeams = Z.aliveTeams();                          //wtffffff souqa
                     dmgEvent = e;
+                    alive = Z.alive;
                     R.getServer().getScheduler().scheduleSyncDelayedTask(R, DEATH_MESSAGE, 1);
                 }
             }
@@ -123,8 +126,9 @@ public class eventHandler implements Listener {
         p.setGameMode(GameMode.SPECTATOR);  //force spectator
         if ((Z.GameActive) && R.Leavers.contains(p.getName()))
         {
+            //using a respawn method restores health - respawning manually
             squad s = R.getSquad(p);
-            s.RevivePlayer(p.getName());
+            s.revivePlayer(p.getName());
             p.setGameMode(GameMode.SURVIVAL);
             p.getInventory().clear();
             R.clearArmor(p);
@@ -138,17 +142,19 @@ public class eventHandler implements Listener {
         Player p = e.getPlayer();
         if (Z.GameActive) {
             squad s = R.getSquad(p);
-            if (s.GetAlives().contains(p.getName())) {
-                s.KillPlayer(p.getName());
-                R.InvToChest(p);
-                p.getInventory().clear();
-                R.clearArmor(p);
-                R.Leavers.add(p.getName());
-                R.alertEveryone("§c[Royale] Player " + p.getName() + " disconnected");
+            if (s != null) {
+                if (s.getAlives().contains(p.getName())) {
+                    s.killPlayer(p.getName());
+                    R.PlayerInvToChest(p);
+                    p.getInventory().clear();
+                    R.clearArmor(p);
+                    R.Leavers.add(p.getName());
+                    R.alertEveryone("§c[Royale] Player " + p.getName() + " disconnected");
+                }
             }
         }
-        else if (R.Votestarters.contains(p))
-            R.Votestarters.remove(p);
+        else if (R.Votestarters.contains(p.getName()))
+            R.Votestarters.remove(p.getName());
     }
 
     @EventHandler
@@ -239,32 +245,28 @@ public class eventHandler implements Listener {
         else {
             EntityType et = e.getEntityType();
             for (String k : Z.CFG.getConfigurationSection("MonsterSpawns").getKeys(false))
-                if (et.getName().equals(k)) {
+                if (et.getName().equals(k.toLowerCase())) {
                     if (!Z.mob_despawned.containsKey(k)) {
-                        Z.mob_despawned.put(k,0);
-                        Z.mob_total.put(k,0);
+                        Z.mob_despawned.put(k, 0);
+                        Z.mob_total.put(k, 0);
                     }
-                    Z.mob_total.put(k, Z.mob_total.get(k)+1);
+                    Z.mob_total.put(k, Z.mob_total.get(k) + 1);
                     if (Math.random() > Z.CFG.getConfigurationSection("MonsterSpawns").getDouble(k, 1)) {
-                        Z.mob_despawned.put(k, Z.mob_despawned.get(k)+1);
+                        Z.mob_despawned.put(k, Z.mob_despawned.get(k) + 1);
                         e.setCancelled(true);
                         return;
                     }
                 }
-            //todo log monster info
         }
         return;
     }
 
-    //TODO zone block placing player interact event
-
     @EventHandler
     public void onBlockClick(PlayerInteractEvent e) {
+        //check container
         if (e.isCancelled())
             return;
         if (e.getPlayer().getGameMode().equals(GameMode.SPECTATOR))
-            return;
-        if (!e.getAction().equals(Action.RIGHT_CLICK_BLOCK))
             return;
         checkContainer(e.getClickedBlock());
     }

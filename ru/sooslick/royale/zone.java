@@ -1,15 +1,27 @@
 package ru.sooslick.royale;
 
 import org.bukkit.*;
+import org.bukkit.block.Block;
+import org.bukkit.block.Chest;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Firework;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.TNTPrimed;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.inventory.meta.FireworkMeta;
+import org.bukkit.inventory.meta.PotionMeta;
+import org.bukkit.map.MapCanvas;
 import org.bukkit.map.MapView;
+import org.bukkit.potion.PotionData;
+import org.bukkit.potion.PotionType;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -29,6 +41,7 @@ public class zone implements CommandExecutor
     private double zs;          //zone size
     private double nzs;         //next zone size
     private double nzs_mpl;     //next zone size multiplier
+    private double ezs;         //end zone speed
     private double lfzs;        //lavaflow zone size;
     private double wait_mpl;    //zone wait timer multiplier
     private double sh_mpl;      //zone shrink timer multiplier
@@ -38,6 +51,7 @@ public class zone implements CommandExecutor
     private boolean RedzoneActive;
     public boolean FirstZone;
     public boolean GameActive;
+    private boolean debug_mode;
     private int freq;       //RoyaleProcessorFrequency
     private int zwt;         //next zone wait timer
     private int zsht;        //next zone shrink timer
@@ -55,6 +69,9 @@ public class zone implements CommandExecutor
     private int rzMinSize;      //redzone min size
     private int rzx;            //redzone coord
     private int rzz;
+    private int adt;            //airdrop timer
+    private int adpMin;         //airdrop pause
+    private int adpMax;
     private int mt;             //monsters timer
     private double dmg;         //zone damage mpl;
     public int eltimer;        //elytra timer
@@ -82,6 +99,7 @@ public class zone implements CommandExecutor
         GameActive = false;
         RedzoneActive = false;
         MonstersActive = false;
+        debug_mode = false;
         freq = CFG.getInt("RoyaleProcessorFrequency", 20);
         zwt = CFG.getInt("StartTimer", 300) * 20;
         zsht = CFG.getInt("StartTimer", 300) * 20;  //seconds * 20 = gameticks
@@ -89,6 +107,7 @@ public class zone implements CommandExecutor
         zs = CFG.getInt("PreStartZoneSize", 2055);
         nzs = CFG.getInt("StartZoneSize", 2048);
         nzs_mpl = CFG.getDouble("NewZoneSizeMultiplier", 0.5D);
+        ezs = (CFG.getInt("EndZoneSize",100) / CFG.getDouble("EndZoneSpeed",0.5D)) * 20;
         lfzs = CFG.getInt("LavaFlowZoneSize", 16);
         wait_mpl = CFG.getDouble("WaitMultiplier", 0.75);
         sh_mpl = CFG.getDouble("ShrinkMultiplier", 0.67);
@@ -104,10 +123,13 @@ public class zone implements CommandExecutor
         rzDen = CFG.getInt("RedzoneDensity", 5);
         rzMinSize = CFG.getInt("RedzoneMinZoneSize", 250);
         mt = CFG.getInt("EnableMonstersTime", 310) * 20;
+        adt = CFG.getInt("FirstAirdropTime", 250) * 20;
+        adpMin = CFG.getInt("AirdropMinPause", 100) * 20;
+        adpMax = CFG.getInt("AirdropMaxPause", 200) * 20;
         wb = w.getWorldBorder();
         wb.setSize(zs);
         wb.setCenter(xc,zc);
-        wb.setDamageBuffer(0);
+        wb.setDamageBuffer(100);
         wb.setDamageAmount(CFG.getDouble("ZoneStartDamage", 0.01));
         dmg = CFG.getDouble("ZoneDamageMultiplier", 2);
         eltimer = 300;
@@ -123,10 +145,11 @@ public class zone implements CommandExecutor
         mob_timer = 1200;
     }
 
-    public void startgame()
+    public void startgame(boolean debug)
     {
         wb.setSize(nzs, zt/20);
         GameActive = true;
+        debug_mode = debug;
     }
 
     public void stopgame()
@@ -190,8 +213,8 @@ public class zone implements CommandExecutor
                         }
                     }
                     ll++;
-                    if (ll > 254) {
-                        ll--;           //over the edge     //TODO check! max world h
+                    if (ll > w.getMaxHeight()) {
+                        ll--;           //over the edge
                     }
                 }
             }
@@ -220,9 +243,7 @@ public class zone implements CommandExecutor
                         //check if last zone (no center offset)
                         if (nzs < CFG.getInt("EndZoneSize", 100)) {
                             nzs = 0;
-                            zsht = 3600;    //3 minutes to shrink
-                            //todo cfg this value: blocks per second
-                            //todo: cfg comments + field order
+                            zsht = (int)ezs;    //3 minutes to shrink
                         }
                             //set new center if enabled
                         else if (CFG.getBoolean("EnableCenterOffset", true)) {
@@ -234,37 +255,9 @@ public class zone implements CommandExecutor
                         Bukkit.broadcastMessage("§cRestricting play area in " + Integer.toString((int) (zt / 20)) + " seconds!");
                         Bukkit.broadcastMessage("§cNew zone center at x=" + Integer.toString((int) nxc) + "; z=" + Integer.toString((int) nzc));
                         Bukkit.broadcastMessage("=-=-=-=-=-=-=-=-=-=");
-                        Bukkit.broadcastMessage("§4[name:\"Zone Center\", x:"+Integer.toString((int) nxc)+",y:0,z:"+Integer.toString((int) nzc)+"]");
                         //map item
-                        if (CFG.getBoolean("GiveZoneMap")) {
-                            //todo: common squad map + /zone marker x y feature refactor this
-                            if (nzs >= 100) {
-                                int sc;
-                                for (Player pl : Bukkit.getOnlinePlayers())
-                                {
-                                    pl.setCompassTarget(new Location(w, nxc, 0, nzc));
-                                    //give zone map
-                                    ItemStack zonemap = new ItemStack(Material.MAP);
-                                    MapView zmr = Bukkit.createMap(w);
-                                    zmr.getRenderers().clear();
-                                    zmr.setUnlimitedTracking(true);
-                                    zmr.setCenterX((int) nxc);
-                                    zmr.setCenterZ((int) nzc);
-                                    if (nzs < 64) {zmr.setScale(MapView.Scale.CLOSEST); sc = 2;}
-                                    else if (nzs < 128) {zmr.setScale(MapView.Scale.CLOSE); sc = 4;}
-                                    else if (nzs < 256) {zmr.setScale(MapView.Scale.NORMAL); sc = 8;}
-                                    else if (nzs < 512) {zmr.setScale(MapView.Scale.FAR); sc = 16;}
-                                    else {zmr.setScale(MapView.Scale.FARTHEST); sc = 32;}
-                                    Renderer r = new Renderer();
-                                    r.initialize(zmr);
-                                    r.init((int)nzs, sc, wb);
-                                    zmr.addRenderer(r);
-                                    zonemap.setDurability(zmr.getId());
-                                    pl.getInventory().addItem(zonemap);
-                                    //todo fix old map?
-                                }
-                            }
-                        }
+                        giveMap();
+                        //todo: /mark x y command
 
                     } else {                                           //ша "EnableCenterOffset"
                         double z1 = zt;
@@ -318,7 +311,7 @@ public class zone implements CommandExecutor
                                     l.setX(rzx + (Math.random() - 0.5) * rzrad*2);
                                     l.setZ(rzz + (Math.random() - 0.5) * rzrad*2);               //"RedzoneRadius"
                                     TNTPrimed tnt = w.spawn(l, TNTPrimed.class);
-                                    tnt.setFuseTicks(250 + (int) (Math.random() * 20));
+                                    tnt.setFuseTicks(250 + (int) (Math.random() * freq));
                                 }
                             }
                         }
@@ -330,6 +323,133 @@ public class zone implements CommandExecutor
                         RedzoneActive = true;
                         rzt = 0;
                         rzQtyLeft = 0;
+                    }
+                }
+            }
+
+            //airdrop processor
+            //MEGA TODO: cheak this code
+            if (CFG.getBoolean("AirdropEnable", true))
+            {
+                if (CFG.getInt("AirdropMinZoneSize", 100) < wb.getSize())
+                {
+                    adt -= freq;
+                    if (adt <= 0) {
+                        adt = (int) (Math.random() * (adpMax - adpMin) + adpMin);
+                        //rand loc for chest
+                        Location l = plugin.RandomLocation((int) (wb.getSize()*0.8));
+                        l.setX(l.getX() + wb.getCenter().getX());
+                        l.setZ(l.getZ() + wb.getCenter().getZ());
+                        l.setY(w.getHighestBlockYAt(l));
+                        l.getBlock().setType(Material.CHEST);
+                        Chest c = (Chest) l.getBlock().getState();
+                        //todo optimise: read cfg only once at game start
+                        //get itemstack map
+                        int MaxVar = 0;
+                        HashMap<Material, Integer> ItemVar = new HashMap<>();
+                        ItemVar.clear();
+                        ConfigurationSection cs = CFG.getConfigurationSection("AirdropItems");
+                        for (String s : cs.getKeys(false)) {
+                            MaxVar+= cs.getInt(s);
+                            ItemVar.put(Material.getMaterial(s),cs.getInt(s));
+                        }
+                        //stack map
+                        HashMap<Material, Integer> StackVar = new HashMap<>();
+                        StackVar.clear();
+                        cs = CFG.getConfigurationSection("StackableItems");
+                        for (String s : cs.getKeys(false))
+                            StackVar.put(Material.getMaterial(s),cs.getInt(s));
+                        //enchantments map
+                        HashMap<Material, HashMap> EncItems = new HashMap<>();
+                        EncItems.clear();
+                        cs = CFG.getConfigurationSection("Enchantments");
+                        for (String s : cs.getKeys(false)) {
+                            HashMap<Enchantment, Integer> hm = new HashMap<>();
+                            hm.clear();
+                            ConfigurationSection css = cs.getConfigurationSection(s);
+                            for (String s1 : css.getKeys(false))
+                                hm.put(Enchantment.getByName(s1),cs.getInt(s1));
+                            EncItems.put(Material.getMaterial(s), hm);
+                            //todo maxvar?
+                        }
+                        //potioon map
+                        int MaxPot = 0;
+                        HashMap<PotionType, Integer> PotVar = new HashMap<>();
+                        PotVar.clear();
+                        cs = CFG.getConfigurationSection("Potions");
+                        for (String s : cs.getKeys(false)) {
+                            PotVar.put(PotionType.valueOf(s), cs.getInt(s));
+                            MaxPot+= cs.getInt(s);
+                        }
+                        //process chest
+                        for (int i=0; i<27; i++) {
+                            //get itemstack from map
+                            int r = (int)(Math.random()*MaxVar);
+                            ItemStack IS = null;
+                            for (Material m : ItemVar.keySet()) {
+                                r-= ItemVar.get(m);
+                                if (m == null)          //it is possible? Why crashed a new ItemStack(m)?
+                                    continue;
+                                if (r <= 0) {
+                                    IS = new ItemStack(m);
+                                    //get stack qty
+                                    if (StackVar.containsKey(m)) {
+                                        IS.setAmount((int)(Math.random()*StackVar.get(m))+1);
+                                    }
+                                    else
+                                        IS.setAmount(1);
+                                    //get enchant
+                                    if (Math.random() < CFG.getDouble("EnchantedItems", 0.1))
+                                        if (EncItems.containsKey(IS.getType())) {
+                                            int maxe = 0;
+                                            HashMap<Enchantment, Integer> hme = EncItems.get(IS.getType());
+                                            for (Enchantment e : hme.keySet())
+                                                maxe+= hme.get(e);
+                                            maxe = (int)(Math.random()*maxe);
+                                            for (Enchantment e : hme.keySet()) {
+                                                maxe-= hme.get(e);
+                                                if (maxe<=0) {
+                                                    IS.addEnchantment(e,1);
+                                                    break;
+                                                }
+                                            }
+                                        }
+                                    //get type for pot
+                                    if ((IS.getType().equals(Material.SPLASH_POTION)) || (IS.getType().equals(Material.POTION))) {
+                                        int p = (int)(Math.random()*MaxPot);
+                                        for (PotionType pt : PotVar.keySet()) {
+                                            p-= PotVar.get(pt);
+                                            if (p<=0) {
+                                                PotionMeta pm = (PotionMeta) IS.getItemMeta();
+                                                pm.setBasePotionData(new PotionData(pt));
+                                                IS.setItemMeta(pm);
+                                                plugin.LOG.info(pm.getBasePotionData().getType().toString() + " / " + pt.toString());
+                                                break;
+                                            }
+                                        }
+                                    }
+                                    if (IS != null)
+                                        if (IS.getType() != Material.AIR)
+                                            c.getInventory().addItem(IS);
+                                    break;
+                                }
+                            }
+                        }
+                        //spawn fireworks
+                        for (int i=2; i<10; i++) {
+                            Location fwl = l.clone();
+                            fwl.setX(fwl.getX() + Math.random()*i-(i/2));
+                            fwl.setZ(fwl.getZ() + Math.random()*i-(i/2));
+                            Firework fw = (Firework) w.spawnEntity(fwl, EntityType.FIREWORK);
+                            FireworkMeta fwm = fw.getFireworkMeta();
+                            FireworkEffect fwe = FireworkEffect.builder().flicker(true).withColor(Color.BLUE).withTrail().with(FireworkEffect.Type.BURST).build();
+                            fwm.addEffect(fwe);
+                            fwm.setPower(i);
+                            fw.setFireworkMeta(fwm);
+                        }
+                        //alert
+                        if (CFG.getBoolean("AirdropAlert", true))
+                            plugin.alertEveryone("§6[Royale] Bonus Chest is spawned! X = " +l.getBlockX() + "; Z = " + l.getBlockZ());
                     }
                 }
             }
@@ -370,7 +490,7 @@ public class zone implements CommandExecutor
                         elalert = false;
                         Bukkit.broadcastMessage("§cFall damage will be enabled in 15 seconds!");
                         for (squad s : Teams) {
-                            for (String pn : s.GetAlives()) {
+                            for (String pn : s.getAlives()) {
                                 PlayerInventory inv = Bukkit.getPlayer(pn).getInventory();
                                 if (inv.contains(Material.ELYTRA))
                                     inv.remove(Material.ELYTRA);
@@ -385,22 +505,23 @@ public class zone implements CommandExecutor
             }
 
             //wingame processor
-            if (aliveTeams<=1)
-            {
-                //fid alive squad
-                squad f = null;
-                for (squad s : Teams)
-                    if (s.HaveAlive()) {
-                        f = s;
-                        break;
-                    }
-                stopgame();
-                Bukkit.broadcastMessage("§a" + f.name + " won the game!");
+            if (!debug_mode) {
+                if (aliveTeams <= 1) {
+                    //find alive squad
+                    squad f = null;
+                    for (squad s : Teams)
+                        if (s.haveAlive()) {
+                            f = s;
+                            break;
+                        }
+                    stopgame();
+                    Bukkit.broadcastMessage("§a" + f.getName() + " won the game!");
+                }
             }
 
             //Alert processor + player damage by zone
             for (squad s : Teams)
-                for (String pn : s.GetAlives())
+                for (String pn : s.getAlives())
                 {
                     Player p = Bukkit.getPlayer(pn);
                     Location ploc = p.getLocation();
@@ -428,11 +549,19 @@ public class zone implements CommandExecutor
                             p.sendMessage("§cYou are not in safe zone! Type §6/zone §cfor details");
                             Alerts.put(p, (p.getLocation().getBlockY()+10)*25);
                         }
-                        //TODO fix
                         //damage if outside
-                        //if (!wb.isInside(ploc)) {
-                        //    Bukkit.getPluginManager().callEvent(new EntityDamageEvent(p, EntityDamageEvent.DamageCause.SUFFOCATION, wb.getDamageAmount()));
-                        //}
+                        if (!wb.isInside(ploc)) {
+                            double dmg = distanceOutside(ploc) * wb.getDamageAmount();
+                            double h = p.getHealth();
+                            if (dmg > h)
+                                Bukkit.getServer().getPluginManager().callEvent(new EntityDamageEvent(p, EntityDamageEvent.DamageCause.SUFFOCATION, dmg));
+                            else
+                                p.setHealth(h - dmg);
+                            //todo: cfg this section: enable, distance + frequency
+                            Block b = p.getTargetBlock(null, 3);
+                            if (b != null)
+                                b.setType(Material.AIR);
+                        }
                     }
                 }
 
@@ -440,30 +569,53 @@ public class zone implements CommandExecutor
             mob_timer-= freq;
             if (mob_timer <= 0) {
                 mob_timer = 1200;
+                plugin.LOG.info("[Royale Monster Log] ");
                 for (String et : mob_total.keySet()) {
                     plugin.LOG.info("[Royale Monster Log] " + et + " " + mob_despawned.get(et).toString() + "/" + mob_total.get(et) + " despawned");
                 }
             }
+        }
+    }
 
-            //debug log
-            /*
-            String s = "";
-            s+= zt + ";";
-            s+= zwt + ";";
-            s+= zsht + ";";
-            s+= xc + ";";
-            s+= zc + ";";
-            s+= nxc + ";";
-            s+= nzc + ";";
-            s+= zs + ";";
-            s+= nzs + ";";
-            s+= wb.getCenter().getBlockX() + ";";
-            s+= wb.getCenter().getBlockZ() + ";";
-            s+= wb.getSize() + ";";
-            s+= ZoneShrink + ";";
-            s+= FirstZone + ";\n";
-            plugin.zonelog(s);
-            */
+    public void giveMap() {
+        if (CFG.getBoolean("GiveZoneMap")) {
+            if (nzs >= 100) {
+                int sc;
+                for (squad s : Teams) {
+                    //give zone map
+                    ItemStack zonemap;
+                    if (s.getMap() == null)
+                        zonemap = new ItemStack(Material.MAP);      //is this required now? Todo check
+                    else
+                        zonemap = s.getMap();
+                    MapView zmr = Bukkit.createMap(w);
+                    zmr.getRenderers().clear();
+                    zmr.setUnlimitedTracking(true);
+                    zmr.setCenterX((int) nxc);
+                    zmr.setCenterZ((int) nzc);
+                    if (nzs < 64) {zmr.setScale(MapView.Scale.CLOSEST); sc = 2;}
+                    else if (nzs < 128) {zmr.setScale(MapView.Scale.CLOSE); sc = 4;}
+                    else if (nzs < 256) {zmr.setScale(MapView.Scale.NORMAL); sc = 8;}
+                    else if (nzs < 512) {zmr.setScale(MapView.Scale.FAR); sc = 16;}
+                    else {zmr.setScale(MapView.Scale.FARTHEST); sc = 32;}
+                    Renderer r = new Renderer();
+                    r.initialize(zmr);
+                    r.init((int)nzs, sc, wb, s);
+                    zmr.addRenderer(r);
+                    zonemap.setDurability(zmr.getId());
+                    s.setMap(zonemap);
+                    for (String str : s.getPlayers()) {
+                        Player p = Bukkit.getPlayer(str);
+                        p.setCompassTarget(new Location(w, nxc, 0, nzc));
+                        for (ItemStack is : p.getInventory().getContents()) {
+                            if (is != null)
+                                if (is.getType().equals(Material.MAP))
+                                    p.getInventory().remove(is);
+                        }
+                        p.getInventory().addItem(zonemap);      //todo test / debug replacing
+                    }
+                }
+            }
         }
     }
 
@@ -475,7 +627,7 @@ public class zone implements CommandExecutor
     public void restoreChests() {
         for (Location l : ChestCreated) {
             if (l.getBlock().getType().equals(Material.CHEST))
-                l.getBlock().setType(Material.MOSSY_COBBLESTONE);   //todo cfg
+                l.getBlock().setType(Material.getMaterial(CFG.getString("RestoreChestBlock", "MOSSY_COBBLESTONE")));
             else
                 l.getBlock().setType(Material.AIR);
         }
@@ -505,7 +657,7 @@ public class zone implements CommandExecutor
                 (ploc.getBlockZ() < nzc + nzs/2))
             sender.sendMessage("§aYou are in safe zone!");
         else
-            sender.sendMessage("§cYou are not in safe zone!");
+            sender.sendMessage("§cDistance to zone: " + Math.ceil(distanceToZone(((Player) sender).getLocation())));
 
         sender.sendMessage("§6Current zone size: " + Integer.toString((int)wb.getSize()));
         sender.sendMessage("§6Next zone size: " + nzs);
@@ -526,7 +678,7 @@ public class zone implements CommandExecutor
     {
         int a = 0;
         for (squad s : Teams)
-            if (s.HaveAlive())
+            if (s.haveAlive())
                 a++;
         return a;
     }
@@ -535,7 +687,56 @@ public class zone implements CommandExecutor
     {
         int a = 0;
         for (squad s : Teams)
-            a+= s.GetAliveCount();
+            a+= s.getAliveCount();
         return a;
+    }
+
+    public double distanceToZone(Location l) {
+        double left = nxc - nzs/2;
+        double right = nxc + nzs/2;
+        double top = nzc + nzs/2;
+        double bottom = nzc - nzs/2;
+        double hd, vd;
+        double x = l.getX();
+        double z = l.getZ();
+        if (x < left)
+            hd = left - x;
+        else if ((x > left) && (x < right))
+            hd = 0;
+        else
+            hd = x - right;
+        if (z < bottom)
+            vd = bottom - z;
+        else if ((z > bottom) && (z < top))
+            vd = 0;
+        else
+            vd = z - top;
+        return Math.sqrt(hd*hd + vd*vd);
+    }
+    //todo refactor distances
+    public double distanceOutside(Location l) {
+        //Bukkit.broadcastMessage(l.toString());
+        //Bukkit.broadcastMessage(wb.getCenter().toString());
+        //Bukkit.broadcastMessage(wb.getSize() + " ");
+        double left = wb.getCenter().getX() - wb.getSize()/2;
+        double right = wb.getCenter().getX() + wb.getSize()/2;
+        double top = wb.getCenter().getZ() + wb.getSize()/2;
+        double bottom = wb.getCenter().getZ() - wb.getSize()/2;
+        double hd, vd;
+        double x = l.getX();
+        double z = l.getZ();
+        if (x < left)
+            hd = left - x;
+        else if ((x > left) && (x < right))
+            hd = 0;
+        else
+            hd = x - right;
+        if (z < bottom)
+            vd = bottom - z;
+        else if ((z > bottom) && (z < top))
+            vd = 0;
+        else
+            vd = z - top;
+        return Math.sqrt(hd*hd + vd*vd);
     }
 }

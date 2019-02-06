@@ -1,6 +1,8 @@
+#Royale Processor Frequency defines how often game data will be processed.
+#Default value 20 means that every 20 ticks (or every second) game data such as game zone or alive players will be recalculated
 RoyaleProcessorFrequency: 20
-StartZoneSize: 2048
 PreStartZoneSize: 2055
+StartZoneSize: 2048
 NewZoneSizeMultiplier: 0.5
 PreStartTimer: 60
 StartTimer: 300
@@ -8,6 +10,7 @@ WaitMultiplier: 0.75
 ShrinkMultiplier: 0.67
 EnableCenterOffset: true
 EndZoneSize: 100
+EndZoneSpeed: 0.5
 LavaFlowZoneSize: 16
 LavaFlowSpeed: 20
 EnableRedzone: true
@@ -26,16 +29,47 @@ StartFallHeight: 1600
 EnableMonsters: true
 EnableMonstersTime: 310
 MonsterSpawns:
-  ZOMBIE: 0.75
+  ZOMBIE: 0.5
   SKELETON: 0.5
   CREEPER: 0.5
-  SPIDER: 1
   CAVE_SPIDER: 0.25
   WITCH: 0.25
-  HUSK: 0.5
 MinVotestarts: 3
 MinVotestartPercent: 0.5
 PostGameCommandEnable: true
 PostGameCommandTime: 60
 PostGameCommand: stop
 MaxSquadMembers: 4
+NametagVisiblity: false
+FriendlyFire: true
+EnableSquadBalancing: true
+EnableChestTracking: true
+RestoreChestBlock: MOSSY_COBBLESTONE
+AirdropEnable: true
+AirdropAlert: true
+FirstAirdropTime: 250
+AirdropMinPause: 100
+AirdropMaxPause: 200
+AirdropMinZoneSize: 300
+AirdropItems:
+  AIR: 1000
+  DIAMOND: 40
+  BOW: 90
+  IRON_CHESTPLATE: 100
+  SPLASH_POTION: 120
+  ARROW: 200
+EnchantedItems: 0.1
+Enchantments:
+  BOW:
+    ARROW_DAMAGE: 10
+    ARROW_KNOCKBACK: 1
+  IRON_CHESTPLATE:
+    PROTECTION_ENVIRONMENTAL: 10
+    PROTECTION_PROJECTILE: 5
+Potions:
+  INSTANT_HEAL: 10
+  INSTANT_DAMAGE: 5
+StackableItems:
+  ARROW: 10
+  DIAMOND: 5
+

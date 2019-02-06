@@ -1,8 +1,12 @@
 package ru.sooslick.royale;
 
+import org.bukkit.Bukkit;
 import org.bukkit.WorldBorder;
 import org.bukkit.entity.Player;
 import org.bukkit.map.*;
+
+import java.util.ArrayList;
+import java.util.HashMap;
 
 /**
  * Created by sooslick on 15.10.2018.
@@ -11,22 +15,26 @@ public class Renderer extends MapRenderer {
 
     private int size;
     private int sizemod;
-    private int px_old;
-    private int pz_old;
+    private HashMap<String, Integer> px_old;
+    private HashMap<String, Integer> pz_old;
     private WorldBorder wb;
+    private squad sq;
 
-    //todo: dynamic teammates array
-
-    public void init(int s, int sm, WorldBorder w) {
+    public void init(int s, int sm, WorldBorder w, squad sq1) {
         size = s;
         sizemod = sm;
-        px_old = 0;
-        pz_old = 0;
+        px_old = new HashMap<>();
+        pz_old = new HashMap<>();
         wb = w;
+        sq = sq1;
+        for (String str : sq.getPlayers()) {
+            px_old.put(str, 0);
+            pz_old.put(str, 0);
+        }
     }
 
     @Override
-    public void render(MapView mv, MapCanvas mc, Player p) {
+    public void render(MapView mv, MapCanvas mc, Player plr) {
         //new zone
         int begin = (int) (64 - size / sizemod);
         int end = (int) (64 + size / sizemod);
@@ -51,31 +59,41 @@ public class Renderer extends MapRenderer {
             mc.setPixel(beginx, i, MapPalette.RED);
             mc.setPixel(endx, i, MapPalette.RED);
         }
-        //player location
-        px = (int) ((p.getLocation().getBlockX() - mv.getCenterX()) / (sizemod / 2) + 64);
-        pz = (int) ((p.getLocation().getBlockZ() - mv.getCenterZ()) / (sizemod / 2) + 64);
-        if (System.currentTimeMillis() % 1000 < 500) {
-            mc.setPixel(px,pz,MapPalette.WHITE);
-            mc.setPixel(px-1,pz-1,MapPalette.WHITE);
-            mc.setPixel(px-1,pz+1,MapPalette.WHITE);
-            mc.setPixel(px+1,pz-1,MapPalette.WHITE);
-            mc.setPixel(px+1,pz+1,MapPalette.WHITE);
+        for (String s : sq.getAlives()) {
+            //player location
+            Player p = Bukkit.getPlayer(s);
+            int pxo = px_old.get(s);
+            int pzo = pz_old.get(s);
+            px = (int) ((p.getLocation().getBlockX() - mv.getCenterX()) / (sizemod / 2) + 64);
+            pz = (int) ((p.getLocation().getBlockZ() - mv.getCenterZ()) / (sizemod / 2) + 64);
+            if (System.currentTimeMillis() % 1000 < 500)
+                if (p.equals(plr))
+                    drawXColor(mc, px, pz, MapPalette.RED);
+                else
+                    drawXColor(mc, px, pz, MapPalette.DARK_BROWN);
+            else
+                drawXBase(mc, px, pz);
+            if ((px != pxo) || (pz != pzo)) {
+                drawXBase(mc, pxo, pzo);
+                px_old.put(s, px);
+                pz_old.put(s, pz);
+            }
         }
-        else {
-            mc.setPixel(px,pz,mc.getBasePixel(px,pz));
-            mc.setPixel(px-1,pz-1,mc.getBasePixel(px-1,pz-1));
-            mc.setPixel(px-1,pz+1,mc.getBasePixel(px-1,pz+1));
-            mc.setPixel(px+1,pz-1,mc.getBasePixel(px+1,pz-1));
-            mc.setPixel(px+1,pz+1,mc.getBasePixel(px+1,pz+1));
-        }
-        if ((px != px_old)||(pz != pz_old)) {
-            mc.setPixel(px_old,pz_old,mc.getBasePixel(px_old,pz_old));
-            mc.setPixel(px_old-1,pz_old-1,mc.getBasePixel(px_old-1,pz_old-1));
-            mc.setPixel(px_old-1,pz_old+1,mc.getBasePixel(px_old-1,pz_old+1));
-            mc.setPixel(px_old+1,pz_old-1,mc.getBasePixel(px_old+1,pz_old-1));
-            mc.setPixel(px_old+1,pz_old+1,mc.getBasePixel(px_old+1,pz_old+1));
-            px_old = px;
-            pz_old = pz;
-        }
+    }
+
+    private void drawXColor(MapCanvas mc, int x, int y, byte cl) {
+        mc.setPixel(x,y,cl);
+        mc.setPixel(x-1,y-1,cl);
+        mc.setPixel(x-1,y+1,cl);
+        mc.setPixel(x+1,y-1,cl);
+        mc.setPixel(x+1,y+1,cl);
+    }
+
+    private void drawXBase(MapCanvas mc, int x, int y) {
+        mc.setPixel(x,y,mc.getBasePixel(x,y));
+        mc.setPixel(x-1,y-1,mc.getBasePixel(x-1,y-1));
+        mc.setPixel(x-1,y+1,mc.getBasePixel(x-1,y+1));
+        mc.setPixel(x+1,y-1,mc.getBasePixel(x+1,y-1));
+        mc.setPixel(x+1,y+1,mc.getBasePixel(x+1,y+1));
     }
 }

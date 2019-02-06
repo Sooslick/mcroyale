@@ -1,6 +1,6 @@
 name: BattleRoyale
 main: ru.sooslick.royale.royale
-version: 0.2.0.14
+version: 0.2.1.1
 author: sooslick
 commands:
   royale:

@@ -6,21 +6,20 @@ import org.bukkit.block.Chest;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.map.MapView;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.potion.PotionType;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.logging.Logger;
@@ -38,12 +37,13 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
     public zone GameZone;
     public FileConfiguration CFG;
     public World w;
-    public Scoreboard sb;
-    public Team tm;
+    public static Scoreboard sb;
+    public static Team.OptionStatus tmo;
+    public static boolean ff;
     public ArrayList<squad> Squads = new ArrayList<>();
     private ArrayList<squadInvite> Invites = new ArrayList<>();
     public ArrayList<String> Leavers = new ArrayList<>();
-    public ArrayList<Player> Votestarters= new ArrayList<>();
+    public ArrayList<String> Votestarters= new ArrayList<>();
     public int StartGameTimer = 60;
     public boolean StartGameCountdown = false;
     public int ShutDownTimer = 60;
@@ -52,11 +52,16 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
     @Override
     public void onEnable()
     {
+        //init globals
         ROYALE = this;
         LOG = getServer().getLogger();
         LOG.info("[Royale] Loading...");
 
-        //datafolder
+        //create alternate scoreboard
+        sb = Bukkit.getScoreboardManager().getNewScoreboard();
+        squad.sb = sb;
+
+        //datafolder check & create
         try {
             if (!getDataFolder().exists()) {
                 getDataFolder().mkdir();
@@ -66,6 +71,7 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
             LOG.warning("[Royale] " + ex);
             LOG.warning("[Royale] Has server necessary permissions to rw datafolder?");
         }
+        //cfg check & create
         try {
             File f = new File(getDataFolder().toString() + File.separator + "plugin.yml" );
             if (!f.exists()) {
@@ -75,6 +81,7 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
         } catch (Exception ex) {
             LOG.warning("[Royale] " + ex);
         }
+        //save cfg & reload
         CFG = ROYALE.getConfig();          //assign original cfg file
         configFixMissing();                 //write or repair bad fields
         ROYALE.saveConfig();
@@ -82,18 +89,20 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
         CFG = ROYALE.getConfig();          //reassign repaired config
         LOG.info("[Royale] Read config");
 
+        //prepare gamezone
         w = getServer().getWorlds().get(0); //get main world
-
         GameZone = new zone(this);
         GameZone.CFG = CFG;
         GameZone.init(w);
         LOG.info("[Royale] GameZone prepared");
 
+        //prepare lists
         Squads.clear();
         Invites.clear();
         Leavers.clear();
         Votestarters.clear();
 
+        //prepare executors
         getServer().getPluginManager().registerEvents(new eventHandler(this),this);
         getCommand("royale").setExecutor(new royaleCommand(this));
         getCommand("squad").setExecutor(new squadCommand(this));
@@ -119,13 +128,13 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
                     if (si.Timer<=0) {
                         Invites.remove(si);
                         break;
-                    }       //костыльное решение чтобы не крашилось
+                    }       //костыльное решение чтобы не крашилось. todo fix it
                 }
                 if (StartGameCountdown)
                 {
                     StartGameTimer--;
                     if (StartGameTimer==0) {
-                        onStartgameCmd();
+                        onStartgameCmd(false);
                         StartGameCountdown = false;
                     }
                     else if (Math.floorMod(StartGameTimer,10)==0)
@@ -145,18 +154,13 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
             }
         };
 
+        //run background squad task
         INVITE_TASK_ID = getServer().getScheduler().scheduleSyncRepeatingTask(this, SQUAD_INVITE_PROCESSOR, 1, 20);
-
-        sb = Bukkit.getScoreboardManager().getNewScoreboard();
-        tm = sb.registerNewTeam("Royale");
-        tm.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.NEVER);
-
         LOG.info("[Royale] Plugin enabled!");
     }
 
-    //on StartGame
     //squad processor pre-start game
-    public void onStartgameCmd()
+    public void onStartgameCmd(boolean debug)
     {
         //check post-game status
         if (ShutDownCountdown)
@@ -168,71 +172,38 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
             return;
         }
         //clear tracked containers
-        GameZone.restoreChests();
-        //create team 4 every player
+        if (CFG.getBoolean("EnableChestTracking", true))
+            GameZone.restoreChests();
+        //balance squads
+        if (CFG.getBoolean("EnableSquadBalancing", true))
+            autobalance();
+        //create team 4 every player if someone missed & respawn him
         for (Player p : Bukkit.getOnlinePlayers())
-        {
-            tm.addEntry(p.getName());
-            p.setScoreboard(sb);
-            boolean found = false;
-            for (squad s : Squads)
-                if (s.HasPlayer(p.getName())) {found = true; break;}
-            if (!found)
-            {
-                squad s = new squad(p, p.getName());
-                Squads.add(s);
-            }
-            p.getInventory().clear();
-            clearArmor(p);
-            p.setCompassTarget(new Location(w, 0, 0, 0));
-            p.getInventory().addItem(new ItemStack(Material.COMPASS));
-            p.setGameMode(GameMode.SURVIVAL);
-            p.setFoodLevel(20);
-            p.setHealth(20);
-            GameZone.alive++;
-        }
+            respawnPlayer(p);
 
         //teleport teams
         if (CFG.getBoolean("EnableElytraStart", true))
         {
             for (squad s: Squads) {
+                s.joinGame();                                               //todo squad joingame: refactor
+                s.tm.setOption(Team.Option.NAME_TAG_VISIBILITY, tmo);
+                s.tm.setAllowFriendlyFire(ff);                              //todo remove this flags to squad constructor. Wtf?
                 GameZone.addTeam(s);
                 GameZone.aliveTeams++;
-                for (String pname : s.GetPlayers())
-                    s.RevivePlayer(pname);
             }
             Location loc = RandomLocation(CFG.getInt("StartZoneSize", 2048) - 100);
             loc.setY(CFG.getInt("StartFallHeight"));
-            for (Player p : Bukkit.getOnlinePlayers())
-            {
-                loc.setX(loc.getX() + Math.random()*16 - 8);
-                loc.setZ(loc.getZ() + Math.random()*16 - 8);
-                p.teleport(loc);
-                p.getInventory().setChestplate(new ItemStack(Material.ELYTRA));
-                GameZone.Flyers.add(p);
-
-                ItemStack zonemap = new ItemStack(Material.MAP);
-                MapView zmr = Bukkit.createMap(w);
-                //zmr.getRenderers().clear();
-                zmr.setUnlimitedTracking(true);
-                zmr.setCenterX(0);
-                zmr.setCenterZ(0);
-                zmr.setScale(MapView.Scale.FARTHEST);
-                int sc = 32;
-                Renderer r = new Renderer();
-                r.init(2055, sc, w.getWorldBorder());
-                zmr.addRenderer(r);
-                zonemap.setDurability(zmr.getId());
-                p.getInventory().addItem(zonemap);
-            }
+            GameZone.giveMap();
         }
         else {
             for (squad s : Squads) {
-                GameZone.addTeam(s);
+                s.joinGame();
+                s.tm.setOption(Team.Option.NAME_TAG_VISIBILITY, tmo);
+                s.tm.setAllowFriendlyFire(ff);
+                GameZone.addTeam(s);                                        //add team + aliveteams: should ref? todo
                 GameZone.aliveTeams++;
                 Location loc = RandomLocation(CFG.getInt("StartZoneSize", 2048) - 100);
-                for (String pname : s.GetPlayers()) {
-                    s.RevivePlayer(pname);
+                for (String pname : s.getPlayers()) {
                     Player p = Bukkit.getPlayer(pname);
                     p.teleport(loc);
                 }
@@ -240,10 +211,13 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
         }
 
         //zone startgame
-        GameZone.startgame();
+        GameZone.startgame(debug);
         ZONE_TASK_ID = getServer().getScheduler().scheduleSyncRepeatingTask(this, ZONE_SECOND_PROCESSOR, 1,CFG.getInt("RoyaleProcessorFrequency", 20));
         Bukkit.getScheduler().cancelTask(INVITE_TASK_ID);
+        alertEveryone("=-=-=-=-=-=-=-=-=-=-=-=-=-=-=");
         alertEveryone("§a[Royale] New game is started!");
+        alertEveryone("§a[Royale] Game Zone will be marked soon");
+        alertEveryone("§a[Royale] Use §6/zone §acommand to check actual zone size. Now zone is §6"+CFG.getInt("StartZoneSize", 2048)+" §ablocks wide");
     }
 
     public void endgame()
@@ -291,31 +265,6 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
         alertEveryone("§c[Royale] Game is stopped by admin!");
     }
 
-    public void onPausegameCmd()
-    {
-        LOG.warning("[Royale] onPausegameCmd error: broken feature!");
-        alertEveryone("§c[Royale] Failed attempt to pause game!");
-        return;
-    }
-
-    public void onContinuegameCmd()
-    {
-        LOG.warning("[Royale] onContinuegameCmd error: broken feature!");
-        alertEveryone("§c[Royale] Failed attempt to start game!");
-        return;
-    }
-
-    //TODO: pause
-    //save players loc
-    //save invs
-    //save zone & timers
-    //spectate
-
-    //tODO: cont
-    //restore loc & invs
-    //restore zone
-    //start timer
-
     public void cancelShutDown() {
         if (ShutDownCountdown) {
             Bukkit.getScheduler().cancelTask(SD_TASK_ID);
@@ -344,9 +293,9 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
             int z = (int) (Math.random() * Max - Max/2);
             l.setZ(z);
             l.getChunk().load();
-            int y = l.getWorld().getHighestBlockYAt(x, z);
-            //liquid
-            if ((w.getBlockAt(x, y, z).getTypeId() <= 11) && (w.getBlockAt(x, y, z).getTypeId() >= 8))
+            int y = l.getWorld().getHighestBlockYAt(x, z); //highest y+1 *
+            //liquid check
+            if ((w.getBlockAt(x, y-1, z).getTypeId() <= 11) && (w.getBlockAt(x, y-1, z).getTypeId() >= 8))
                 continue;
             int footTypeId = w.getBlockAt(x, y, z).getTypeId();
             if ((w.getBlockAt(x, y + 1, z).getTypeId() != 0) || ((footTypeId != 0) && (footTypeId != 78) && (footTypeId != 31) && (footTypeId != 32) && (footTypeId != 6)))
@@ -359,26 +308,109 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
         return l;
     }
 
-    public squad onSquadCreate(Player creator, String name)
+    public void autobalance()
     {
-        squad s = getSquad(creator);
-        //check if creator not in squad
-        if (s == null) {
-            s = new squad(creator, name);
-            Squads.add(s);
-            alertPlayer("§a[Royale] Squad created!", creator);
-            alertEveryone("§c[Royale] Squad \"" + s.name + "\" created!");
-            //remove pending invites
-            for (squadInvite si : Invites) {
-                if (si.p.equals(creator)) {
-                    Invites.remove(creator);
-                    break;
+        //get open squad list, avg & max members count 4 further calculations
+        ArrayList<squad> opened = new ArrayList<>();
+        int max = 0;
+        double avg = 0;
+        for (squad s : Squads) {
+            if (s.getPlayersCount() > max)
+                max = s.getPlayersCount();
+            avg+= s.getPlayersCount();
+            if (s.getOpen())
+                opened.add(s);
+        }
+        avg/= Squads.size();
+
+        //get solo plrs list & count
+        ArrayList<Player> solist = new ArrayList<>();
+        for (Player p : Bukkit.getOnlinePlayers()) {
+            squad s = getSquad(p);
+            if (s == null)
+                solist.add(p);
+        }
+
+        //if avg squad > 1 -> req balancing
+        if (max > 1) {
+            //if solo
+            if (solist.size() == 1) {
+                //get squad w/ min amount of members
+                int min = squad.MaxMembers;                     //if each opened squad is full
+                squad target = null;                            //solo player will play as solo player
+                for (squad s : opened)
+                    if (s.getPlayersCount() < min) {
+                        min = s.getPlayersCount();
+                        target = s;
+                    }
+                if (target != null) {
+                    target.addPlayer(solist.get(0).getName());
+                    //todo squad message and nametag
+                }
+            }
+            //else balance to avg count
+            else if (solist.size() > 1) {
+                double sqs_mems = solist.size() / (Math.ceil( solist.size() / avg ));
+                double required = sqs_mems;
+                double processed = 0;
+                squad curr_squad = null;
+                for (Player p : solist) {
+                    //check last solo
+                    if (processed+1 == solist.size()) {
+                        //get squad w/ min amount of members
+                        int min = squad.MaxMembers;                     //if each opened squad is full
+                        squad target = null;                            //solo player will play as solo player
+                        for (squad s : opened)
+                            if (s.getPlayersCount() < min) {
+                                min = s.getPlayersCount();
+                                target = s;
+                            }
+                        if (target != null)
+                            target.addPlayer(solist.get(0).getName());
+                            //todo refactor solo balance
+                            //todo: possiblity to add solo-player in auto-created squads?
+                    }
+                    //otherwise balance players
+                    else if (curr_squad == null)
+                        curr_squad = new squad(p, p.getName());
+                    else
+                        curr_squad.addPlayer(p.getName());
+                    processed++;
+                    if (processed >= required) {
+                        required+= sqs_mems;
+                        curr_squad = null;
+                    }
                 }
             }
         }
-        else
+    }
+
+    public void onSquadCreate(Player creator, String name)
+    {
+        //check if squad with same name exists
+        squad s = getSquad(name);
+        if (s != null) {
+            alertPlayer("§a[Royale] There is squad with same name!", creator);
+            return;
+        }
+        //check if creator not in squad
+        s = getSquad(creator);
+        if (s != null) {
             alertPlayer("§a[Royale] You are member of squad!", creator);
-        return s;
+            return;
+        }
+        //create squad
+        s = new squad(creator, name);
+        Squads.add(s);
+        alertPlayer("§a[Royale] Squad created!", creator);
+        alertEveryone("§c[Royale] Squad \"" + s.getName() + "\" created!");
+        //remove pending invites
+        for (squadInvite si : Invites) {
+            if (si.p.equals(creator)) {
+                Invites.remove(creator);
+                break;
+            }
+        }
     }
 
     public void onSquadInvite(Player who,String whom)
@@ -437,13 +469,13 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
                 if (si.s.isFull())
                 {
                     alertPlayer("§c[Royale] You can't accept the invite bcs this squad is full now!", p);
-                    alertPlayer("§c[Royale] Player " + p.getName() + " can't accept the invite bcs your squad is full!", Bukkit.getPlayer(si.s.leader));
+                    alertPlayer("§c[Royale] Player " + p.getName() + " can't accept the invite bcs your squad is full!", Bukkit.getPlayer(si.s.getLeader()));
                 }
                 else {
-                    si.s.AddPlayer(p.getName());
+                    si.s.addPlayer(p.getName());
                     alertPlayer("§a[Royale] You accepted the invite!", p);
-                    alertPlayer("§a[Royale] Invitation accepted by " + p.getName(), Bukkit.getPlayer(si.s.leader));
-                    alertEveryone("§c[Royale] Now the squad \"" + si.s.name + "\" have " + Integer.toString(si.s.GetPlayersCount()) + " members!");
+                    alertPlayer("§a[Royale] Invitation accepted by " + p.getName(), Bukkit.getPlayer(si.s.getLeader()));
+                    alertEveryone("§c[Royale] Now the squad \"" + si.s.getName() + "\" have " + Integer.toString(si.s.getPlayersCount()) + " members!");
                 }
                 Invites.remove(si);
                 break;
@@ -456,15 +488,18 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
 
     public void onSquadInviteDecline(Player p)
     {
-        boolean found = false;
-        squadInvite si11 = new squadInvite();       //TODO do same as accept
+        squadInvite si11 = null;
         for (squadInvite si : Invites)
-            if (si.p.equals(p)) {found = true; si11 = si; break;}
+            if (si.p.equals(p)) {
+                si11 = si;
+                break;
+            }
+        if (si11 == null) {
+            alertPlayer("§a[Royale] You haven't any invites!", p);
+            return;
+        }
         alertPlayer("§a[Royale] You declined the invite!", p);
-        if (!found) return;
-
-        //TODO other checks
-        alertPlayer("§c[Royale] Player "+p.getName()+" declined your invite!", Bukkit.getPlayer(si11.s.leader));
+        alertPlayer("§c[Royale] Player "+p.getName()+" declined your invite!", Bukkit.getPlayer(si11.s.getLeader()));
         Invites.remove(si11);
     }
 
@@ -475,15 +510,15 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
             alertPlayer("§c[Royale] You are not in squad!", p);
             return;
         }
-        if (s.leader.equals(p.getName())) {
+        if (s.getLeader().equals(p.getName())) {
             alertPlayer("§c[Royale] You can't leave from your squad. Use /squad disband",p);
             return;
         }
 
-        s.KickPlayer(p.getName());
+        s.kickPlayer(p.getName());
         alertPlayer("§c[Royale] you left the squad!", p);
-        alertPlayer("§c[Royale] Player "+p.getName()+" left the squad!", Bukkit.getPlayer(s.leader));
-        alertEveryone("§c[Royale] Now the squad \"" + s.name + "\" have " + Integer.toString(s.GetPlayersCount()) + " members!");
+        alertPlayer("§c[Royale] Player "+p.getName()+" left the squad!", Bukkit.getPlayer(s.getLeader()));
+        alertEveryone("§c[Royale] Now the squad \"" + s.getName() + "\" have " + Integer.toString(s.getPlayersCount()) + " members!");
     }
 
     public void onSquadKick(Player p, String kicked)
@@ -493,23 +528,23 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
             alertPlayer("§c[Royale] You are not in squad!", p);
             return;
         }
-        if (!s.leader.equals(p.getName())) {
+        if (!s.getLeader().equals(p.getName())) {
             alertPlayer("§c[Royale] You are not the squad leader!", p);
             return;
         }
-        if (s.leader.equals(p.getName())) {
+        if (s.getLeader().equals(kicked)) {
             alertPlayer("§c[Royale] You can't kick yourself from squad. Use /squad disband",p);
             return;
         }
 
-        for (String pn : s.GetPlayers())
+        for (String pn : s.getPlayers())
         {
             if (pn.equals(kicked))
             {
-                s.KickPlayer(kicked);
+                s.kickPlayer(kicked);
                 alertPlayer("§c[Royale] kicked " + kicked + " from your squad", p);
                 alertPlayer("§c[Royale] You have been kicked from the squad!", Bukkit.getPlayer(kicked));
-                alertEveryone("§c[Royale] Now the squad \"" + s.name + "\" have " + Integer.toString(s.GetPlayersCount()) + " members!");
+                alertEveryone("§c[Royale] Now the squad \"" + s.getName() + "\" have " + Integer.toString(s.getPlayersCount()) + " members!");
                 return;
             }
         }
@@ -524,12 +559,12 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
             alertPlayer("§c[Royale] You are not in squad!", p);
             return;
         }
-        if (!s.leader.equals(p.getName())) {
+        if (!s.getLeader().equals(p.getName())) {
             alertPlayer("§c[Royale] You are not the squad leader!", p);
             return;
         }
 
-        for (String teammate : s.GetPlayers())
+        for (String teammate : s.getPlayers())
             alertPlayer("§c[Royale] Your squad are disbanded!", Bukkit.getPlayer(teammate));
         for (squadInvite si : Invites)
         {
@@ -539,7 +574,8 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
                 Invites.remove(si);
             }
         }
-        alertEveryone("§c[Royale] Squad \"" + s.name + "\" disbanded!");
+        alertEveryone("§c[Royale] Squad \"" + s.getName() + "\" disbanded!");
+        s.tm.removeEntry(s.getLeader());
         Squads.remove(s);
     }
 
@@ -555,7 +591,7 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
         }
         else {
             for (squad s1 : Squads)
-                if (s1.name.equals(sn)) {
+                if (s1.getName().equals(sn)) {
                     s = s1;
                     break;
                 }
@@ -565,48 +601,63 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
             }
         }
 
-        p.sendMessage("§6Squad name: " + s.name);
-        p.sendMessage("§6Squad leader: " + s.leader);
+        p.sendMessage("§6Squad name: " + s.getName());
+        p.sendMessage("§6Squad leader: " + s.getLeader());
         p.sendMessage("§6Squad members:");
-        for (String pn : s.GetPlayers())
+        for (String pn : s.getPlayers())
             p.sendMessage("§e - " + pn);
     }
 
     public void sendSquadList(CommandSender a) {
         String str = "§e";
         for (squad s : Squads)
-            str = str + s.name + ", ";
+            str = str + s.getName() + ", ";
         a.sendMessage(str);
     }
 
-    public boolean isPlayerInSquad(String pn)
-    {
-        for (squad s : Squads) {
-            if (s.HasPlayer(pn)) {
+    public boolean isPlayerInSquad(String pn) {
+        for (squad s : Squads)
+            if (s.hasPlayer(pn))
                 return true;
-            }
-        }
         return false;
     }
 
-    public boolean isAliveInSquad(String pn)
-    {
-        for (squad s : Squads) {
-            if (s.HasAlive(pn)) {
+    public boolean isAliveInSquad(String pn) {
+        for (squad s : Squads)
+            if (s.hasAlive(pn))
                 return true;
-            }
-        }
         return false;
     }
 
-    public squad getSquad(Player p)
-    {
-        for (squad s : Squads) {
-            if (s.HasPlayer(p.getName())) {
+    public squad getSquad(Player p) {
+        for (squad s : Squads)
+            if (s.hasPlayer(p.getName()))
                 return s;
-            }
-        }
         return null;
+    }
+
+    public squad getSquad(String sname) {
+        for (squad s : Squads)
+            if (s.getName().equals(sname))
+                return s;
+        return null;
+    }
+
+    public void respawnPlayer(Player p) {
+        p.setScoreboard(sb);                //custom scoreboard: apply nametag
+        squad s = getSquad(p);              //check squad
+        if (s == null) {
+            s = new squad(p, p.getName());
+            Squads.add(s);
+        }
+        p.getInventory().clear();           //check inv
+        clearArmor(p);
+        p.setCompassTarget(new Location(w, GameZone.wb.getCenter().getX(), 0, GameZone.wb.getCenter().getZ()));
+        p.getInventory().addItem(new ItemStack(Material.COMPASS));
+        p.setGameMode(GameMode.SURVIVAL);
+        p.setFoodLevel(20);                 //respawn
+        p.setHealth(20);
+        s.revivePlayer(p.getName());
     }
 
     public void clearArmor(Player player){
@@ -616,7 +667,7 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
         player.getInventory().setBoots(null);
     }
 
-    public void InvToChest(Player p)
+    public void PlayerInvToChest(Player p)    //todo refactor: param inventry; fix airdrop
     {
         Location tempLoc = p.getLocation();
         Block tempBlock = tempLoc.getBlock();
@@ -666,13 +717,12 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
             if (sender instanceof Player)
             {
                 Player p = (Player) sender;
-                if (!Votestarters.contains(p))
+                if (!Votestarters.contains(p.getName()))
                 {
-                    Votestarters.add(p);
+                    Votestarters.add(p.getName());
                     if ((Votestarters.size() / Bukkit.getOnlinePlayers().size() >= CFG.getDouble("MinVotestartPercent", 0.5)) || (Votestarters.size() >= CFG.getInt("MinVotestarts", 3))) {
                         StartGameCountdown = true;
-                        StartGameTimer = 60;
-                        alertEveryone("§a[Royale] Game start in 60 sec!");
+                        StartGameTimer = 61;
                     }
                     p.sendMessage("§a[Royale] start vote accepted");
                     alertEveryone("§a[Royale] " + p.getName() + " voted to start!");
@@ -698,8 +748,8 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
             }
             if (args[0].equals("reload")) {
                 ROYALE.reloadConfig();
-                configFixMissing();
                 CFG = ROYALE.getConfig();
+                configFixMissing();
                 sender.sendMessage("Config reloaded. ");
                 return true;
             }
@@ -744,6 +794,10 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
         if (CFG.getInt("EndZoneSize", 100)<=0) {
             CFG.set("EndZoneSize", 100);
             LOG.info("[ROYALE] Fixed last zone size. New size = 100 blocks");
+        }
+        if (CFG.getDouble("EndZoneSpeed", 0.5D)<=0) {
+            CFG.set("EndZoneSpeed", 0.5D);
+            LOG.info("[ROYALE] Fixed end zone speed. New speed = 0.5 blocks per second");
         }
         if (CFG.getDouble("NewZoneSizeMultiplier", 0.5D)>=1) {
             CFG.set("NewZoneSizeMultiplier", 0.5D);
@@ -855,30 +909,78 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
             CFG.set("MaxSquadMembers", 4);
             LOG.info("[ROYALE] Fixed max amount of players that may be in squad. Max squad members is 4 players.");
         }
+        CFG.getBoolean("NametagVisiblity", false);
+        LOG.info("[ROYALE] Is player's nametag visible for all players? "+ Boolean.toString(CFG.getBoolean("NametagVisiblity")));
+        CFG.getBoolean("FriendlyFire", false);
+        LOG.info("[ROYALE] Can teammates hit each other? "+ Boolean.toString(CFG.getBoolean("FriendlyFire")));
+        CFG.getBoolean("EnableSquadBalancing", true);
+        LOG.info("[ROYALE] Should game to make squad from solo-players? "+ Boolean.toString(CFG.getBoolean("EnableSquadBalancing")));
+        CFG.getBoolean("EnableChestTracking", true);
+        LOG.info("[ROYALE] Restore all created chest after game? "+ Boolean.toString(CFG.getBoolean("EnableChestTracking")));
+        if (CFG.getString("RestoreChestBlock", "MOSSY_COBBLESTONE").equals("")) {
+            CFG.set("RestoreChestBlock", "MOSSY_COBBLESTONE");
+            LOG.info("[ROYALE] Fixed chest restore block. All created chest will be replaced with mossy cobblestone");
+        }
+        CFG.getBoolean("AirdropEnable", true);
+        LOG.info("[ROYALE] Is Airdrop enabled? "+ Boolean.toString(CFG.getBoolean("AirdropEnable")));
+        CFG.getBoolean("AirdropAlert", true);
+        LOG.info("[ROYALE] Should plugin to broadcast airdrop location? "+ Boolean.toString(CFG.getBoolean("AirdropAlert")));
+        if (CFG.getInt("FirstAirdropTime", 250)<1) {
+            CFG.set("FirstAirdropTime", 250);
+            LOG.info("[ROYALE] Fixed first airdrop occur time. It will drop in 250 seconds from start");
+        }
+        if (CFG.getInt("AirdropMinPause", 100)<1) {
+            CFG.set("AirdropMinPause", 100);
+            LOG.info("[ROYALE] Fixed minimum time between airdrops. New min = 100 seconds");
+        }
+        if (CFG.getInt("AirdropMaxPause", 200)<1) {
+            CFG.set("AirdropMaxPause", 200);
+            LOG.info("[ROYALE] Fixed maximum time between airdrops. New max = 200 seconds");
+        }
+        if (CFG.getInt("AirdropMinZoneSize", 300)<1) {
+            CFG.set("AirdropeMinZoneSize", 300);
+            LOG.info("[ROYALE] Airdrop will be disabled when game zone reaches 300 blocks");
+        }
+        if (CFG.getConfigurationSection("AirdropItems").getKeys(false).size()==0) {
+            LOG.info("[Royale] AirdropItems list is empty?");
+            HashMap<String, Integer> hm = new HashMap<>();
+            hm.put(Material.AIR.toString(), 1000);
+            CFG.createSection("AirdropItems", hm);
+        }
+        if (CFG.getDouble("EnchantedItems", 0.1)>1) {
+            CFG.set("EnchantedItems", 0.1);
+            LOG.info("[ROYALE] Fixed percent chance of item enchanting in airdrop. New chance = 0.1");
+        }
+        if (CFG.getConfigurationSection("Enchantments").getKeys(false).size()==0) {
+            LOG.info("[Royale] Enchantments list is empty?");
+            CFG.createSection("Enchantments");
+            ConfigurationSection cs = CFG.getConfigurationSection("Enchantments");
+            HashMap<String, Integer> hm = new HashMap<>();
+            hm.put(Enchantment.ARROW_DAMAGE.toString(), 10);
+            cs.createSection(Material.BOW.toString(), hm);
+        }
+        if (CFG.getConfigurationSection("Potions").getKeys(false).size()==0) {
+            LOG.info("[Royale] Potions list is empty?");
+            HashMap<String, Integer> hm = new HashMap<>();
+            hm.put(PotionType.INSTANT_DAMAGE.toString(), 5);
+            CFG.createSection("Potions", hm);
+        }
+        if (CFG.getConfigurationSection("StackableItems").getKeys(false).size()==0) {
+            LOG.info("[Royale] StackableItems list is empty?");
+            HashMap<String, Integer> hm = new HashMap<>();
+            hm.put(Material.ARROW.toString(), 20);
+            CFG.createSection("StackableItems", hm);
+        }
 
         //fix static variables
         squad.MaxMembers = CFG.getInt("MaxSquadMembers", 4);
-
-        //- аирдроп вкл / выкл
-        //    - Частота спавна
+        if (CFG.getBoolean("NametagVisiblity", false))
+            tmo = Team.OptionStatus.ALWAYS;
+        else
+            tmo = Team.OptionStatus.FOR_OWN_TEAM;
+        ff = CFG.getBoolean("FriendlyFire", false);
 
         //    - генерация структур вкл / выкл
         //  - всякие параметры плотности и спавна сундуков с лутом
-        //todo config param change ingame
-        //todo nametag visiblity param
-    }
-
-    public void zonelog(String s)
-    {
-        String filePath = getDataFolder().getPath() + "zonelog.csv";
-        try {
-            Files.write(Paths.get(filePath), s.getBytes(), StandardOpenOption.APPEND);
-        }
-        catch (IOException e) {
-            LOG.info(e.toString());
-        }
     }
 }
-//TODO: player stats & cnfigs: enable random squad 4 balancing
-
-//todo track every container to regen map w/ chests

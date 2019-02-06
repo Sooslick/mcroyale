@@ -34,7 +34,12 @@ public class royaleCommand implements CommandExecutor {
         }
         if ((args[0].equals("start"))||(args[0].equals("startgame")))
         {
-            plugin.onStartgameCmd(); //TODO: return int: switch int to msg
+            plugin.onStartgameCmd(false);
+            return true;
+        }
+        if ((args[0].equals("debug"))||(args[0].equals("startdebug")))
+        {
+            plugin.onStartgameCmd(true);
             return true;
         }
         if ((args[0].equals("stop"))||(args[0].equals("stopgame")))
@@ -42,19 +47,6 @@ public class royaleCommand implements CommandExecutor {
             plugin.onStopgameCmd();
             return true;
         }
-        if ((args[0].equals("pause"))||(args[0].equals("pausegame")))
-        {
-            plugin.onPausegameCmd();
-            plugin.alertEveryone("TODO CMD: onPause");
-            return true;
-        }
-        if ((args[0].equals("continue"))||(args[0].equals("continuegame")))
-        {
-            plugin.onContinuegameCmd();
-            plugin.alertEveryone("TODO CMD: onContinue");
-            return true;
-        }
-
         if ((args[0].equals("join")) || (args[0].equals("joingame")) )
         {
             if (!plugin.GameZone.GameActive) {
@@ -70,21 +62,14 @@ public class royaleCommand implements CommandExecutor {
             if (args.length==1) {
                 if (sender instanceof Player) {
                     Player p = (Player) sender;
-                    squad s = plugin.getSquad(p);
-                    if (s == null) {
-                        s = new squad(p, p.getName());
-                        plugin.GameZone.addTeam(s);
-                        plugin.Squads.add(s);
+                    if (p.getGameMode().equals(GameMode.SURVIVAL))
+                        sender.sendMessage("§cYou are playing now. Can't rejoin!");
+                    else {
+                        plugin.respawnPlayer(p);
+                        p.teleport(plugin.RandomLocation(plugin.CFG.getInt("StartZoneSize", 2048) - 100));
+                        Bukkit.broadcastMessage("§aPlayer " + p.getName() + " joined to game and teleported to random location!");
+                        return true;
                     }
-                    p.getInventory().clear();
-                    plugin.clearArmor(p);
-                    p.setGameMode(GameMode.SURVIVAL);
-                    p.setHealth(20);                        //todo: refactor. Player respawn method
-                    p.setFoodLevel(20);
-                    s.RevivePlayer(p.getName());
-                    plugin.tm.addEntry(p.getName());
-                    p.teleport(plugin.RandomLocation(plugin.CFG.getInt("StartZoneSize", 2048) - 100));
-                    Bukkit.broadcastMessage("§aPlayer " + p.getName() + " joined to game and teleported to random location!");
                 } else
                     sender.sendMessage("§cConsole can't play royale :c");
             }
@@ -93,21 +78,14 @@ public class royaleCommand implements CommandExecutor {
                 String pn = args[1];
                 for (Player p : Bukkit.getOnlinePlayers()) {
                     if (p.getName().equals(pn)) {
-                        squad s = plugin.getSquad(p);
-                        if (s == null) {
-                            s = new squad(p, p.getName());
-                            plugin.GameZone.addTeam(s);
-                            plugin.Squads.add(s);
+                        if (p.getGameMode().equals(GameMode.SURVIVAL))
+                            sender.sendMessage("§cPlayer are playing now. Can't rejoin him!");
+                        else {
+                            plugin.respawnPlayer(p);
+                            p.teleport(plugin.RandomLocation(plugin.CFG.getInt("StartZoneSize", 2048) - 100));
+                            Bukkit.broadcastMessage("§aPlayer " + p.getName() + " joined to game and teleported to random location!");
+                            return true;
                         }
-                        p.getInventory().clear();
-                        plugin.clearArmor(p);
-                        p.setGameMode(GameMode.SURVIVAL);
-                        p.setHealth(20);                        //todo: refactor. Player respawn method
-                        p.setFoodLevel(20);
-                        s.RevivePlayer(p.getName());
-                        plugin.tm.addEntry(p.getName());
-                        p.teleport(plugin.RandomLocation(plugin.CFG.getInt("StartZoneSize", 2048) - 100));
-                        Bukkit.broadcastMessage("§aPlayer " + p.getName() + " joined to game and teleported to random location!");
                     }
                 }
                 sender.sendMessage("§cCan't find player " + pn);
@@ -119,7 +97,7 @@ public class royaleCommand implements CommandExecutor {
             plugin.cancelShutDown();
             return true;
         }
-        sender.sendMessage("§cAvailable commands: startgame, stopgame, join, csd");
+        sender.sendMessage("§cAvailable commands: startgame, stopgame, join, csd, debug");
         return true;
     }
 }
