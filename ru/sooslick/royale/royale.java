@@ -667,7 +667,7 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
         player.getInventory().setBoots(null);
     }
 
-    public void PlayerInvToChest(Player p)    //todo refactor: param inventry; fix airdrop
+    public void PlayerInvToChest(Player p)    //todo refactor: param inventry; fix airdrop //after global refactoring
     {
         Location tempLoc = p.getLocation();
         Block tempBlock = tempLoc.getBlock();
@@ -983,4 +983,5 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
         //    - генерация структур вкл / выкл
         //  - всякие параметры плотности и спавна сундуков с лутом
     }
+    //global todo: refactoring according to new model
 }

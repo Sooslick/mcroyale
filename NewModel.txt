@@ -1,0 +1,38 @@
+Royale:
+- CFG commands and operations
+- Pre- and Post-game operations
+- Create main game objects
+
+Abstract command executor:
+- Run associated object's method
+
+Executors:
+- Royale command exec
+- Squad cmd exec
+- Zone cmd exec
+- Config cmd exec
+- Votestart cmd exec
+
+Squad group:
+- Player: store plr stat & current game data
+- Squad: store team state
+- Squad list: game state, invites + balancer
+- Invite
+
+Abstract Timed Object
+- Tick event
+- OnTimer event
+
+Timed objects:
+- InviteRuler 4 squads
+- GameZone
+- Redzone
+- Airdrop
+- Lavaflow
+- Monsters
+- Elytra
+- Alerts
+- Wingame
+- ...
+
+Votestart? Pre- and Post-game events?

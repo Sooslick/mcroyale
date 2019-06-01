@@ -388,7 +388,7 @@ public class zone implements CommandExecutor
                             ItemStack IS = null;
                             for (Material m : ItemVar.keySet()) {
                                 r-= ItemVar.get(m);
-                                if (m == null)          //it is possible? Why crashed a new ItemStack(m)?
+                                if (m == null)          //it is possible? Why crashed a new ItemStack(m)? Try to check material air
                                     continue;
                                 if (r <= 0) {
                                     IS = new ItemStack(m);
