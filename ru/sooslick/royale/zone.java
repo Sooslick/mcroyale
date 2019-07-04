@@ -14,6 +14,7 @@ import org.bukkit.entity.Firework;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.TNTPrimed;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.FireworkMeta;
@@ -74,6 +75,7 @@ public class zone implements CommandExecutor
     private int adpMax;
     private int mt;             //monsters timer
     private double dmg;         //zone damage mpl;
+    private int ozb;         //outside zone breaking distance
     public int eltimer;        //elytra timer
     private boolean elalert;    //elytra alert
     public ArrayList<Player> Flyers = new ArrayList<>();
@@ -132,6 +134,7 @@ public class zone implements CommandExecutor
         wb.setDamageBuffer(100);
         wb.setDamageAmount(CFG.getDouble("ZoneStartDamage", 0.01));
         dmg = CFG.getDouble("ZoneDamageMultiplier", 2);
+        ozb = CFG.getInt("OutsideZoneBreakingDistance", 3);
         eltimer = 300;
         elalert = true;
         Teams.clear();
@@ -343,11 +346,10 @@ public class zone implements CommandExecutor
                         l.setY(w.getHighestBlockYAt(l));
                         l.getBlock().setType(Material.CHEST);
                         Chest c = (Chest) l.getBlock().getState();
-                        //todo optimise: read cfg only once at game start
+                        //todo optimise: read cfg only once at game start -> after declaring Airdrop class
                         //get itemstack map
                         int MaxVar = 0;
                         HashMap<Material, Integer> ItemVar = new HashMap<>();
-                        ItemVar.clear();
                         ConfigurationSection cs = CFG.getConfigurationSection("AirdropItems");
                         for (String s : cs.getKeys(false)) {
                             MaxVar+= cs.getInt(s);
@@ -355,27 +357,23 @@ public class zone implements CommandExecutor
                         }
                         //stack map
                         HashMap<Material, Integer> StackVar = new HashMap<>();
-                        StackVar.clear();
                         cs = CFG.getConfigurationSection("StackableItems");
                         for (String s : cs.getKeys(false))
                             StackVar.put(Material.getMaterial(s),cs.getInt(s));
                         //enchantments map
                         HashMap<Material, HashMap> EncItems = new HashMap<>();
-                        EncItems.clear();
                         cs = CFG.getConfigurationSection("Enchantments");
                         for (String s : cs.getKeys(false)) {
                             HashMap<Enchantment, Integer> hm = new HashMap<>();
-                            hm.clear();
                             ConfigurationSection css = cs.getConfigurationSection(s);
                             for (String s1 : css.getKeys(false))
                                 hm.put(Enchantment.getByName(s1),cs.getInt(s1));
                             EncItems.put(Material.getMaterial(s), hm);
-                            //todo maxvar?
+                            //todo maxvar 4 every enchantment?
                         }
                         //potioon map
                         int MaxPot = 0;
                         HashMap<PotionType, Integer> PotVar = new HashMap<>();
-                        PotVar.clear();
                         cs = CFG.getConfigurationSection("Potions");
                         for (String s : cs.getKeys(false)) {
                             PotVar.put(PotionType.valueOf(s), cs.getInt(s));
@@ -428,9 +426,8 @@ public class zone implements CommandExecutor
                                             }
                                         }
                                     }
-                                    if (IS != null)
-                                        if (IS.getType() != Material.AIR)
-                                            c.getInventory().addItem(IS);
+                                    if (IS.getType() != Material.AIR)
+                                        c.getInventory().addItem(IS);
                                     break;
                                 }
                             }
@@ -557,10 +554,11 @@ public class zone implements CommandExecutor
                                 Bukkit.getServer().getPluginManager().callEvent(new EntityDamageEvent(p, EntityDamageEvent.DamageCause.SUFFOCATION, dmg));
                             else
                                 p.setHealth(h - dmg);
-                            //todo: cfg this section: enable, distance + frequency
-                            Block b = p.getTargetBlock(null, 3);
-                            if (b != null)
-                                b.setType(Material.AIR);
+                            if (CFG.getBoolean("OutsideZoneBreakingEnable", true)) {
+                                Block b = p.getTargetBlock(null, ozb);
+                                if (b != null)
+                                    b.setType(Material.AIR);
+                            }
                         }
                     }
                 }
@@ -626,10 +624,17 @@ public class zone implements CommandExecutor
 
     public void restoreChests() {
         for (Location l : ChestCreated) {
-            if (l.getBlock().getType().equals(Material.CHEST))
+            if (l.getBlock().getState() instanceof InventoryHolder) {
+                ((InventoryHolder) l.getBlock().getState()).getInventory().clear();
                 l.getBlock().setType(Material.getMaterial(CFG.getString("RestoreChestBlock", "MOSSY_COBBLESTONE")));
-            else
-                l.getBlock().setType(Material.AIR);
+            }
+//            if (l.getBlock().getType().equals(Material.CHEST)) {
+//                Chest c = (Chest)l.getBlock();
+//                c.getBlockInventory().clear();
+//                l.getBlock().setType(Material.getMaterial(CFG.getString("RestoreChestBlock", "MOSSY_COBBLESTONE")));
+//            }
+//            else
+//                l.getBlock().setType(Material.AIR);
         }
         Bukkit.getConsoleSender().sendMessage("[Royale] restored " + ChestCreated.size() + " containters.");
         ChestCreated.clear();

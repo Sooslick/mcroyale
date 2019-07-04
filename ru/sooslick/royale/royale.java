@@ -345,7 +345,7 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
                     }
                 if (target != null) {
                     target.addPlayer(solist.get(0).getName());
-                    //todo squad message and nametag
+                    target.sendMessage("Autobalancer", "Player " + solist.get(0).getName() + " joined to squad");
                 }
             }
             //else balance to avg count
@@ -365,10 +365,13 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
                                 min = s.getPlayersCount();
                                 target = s;
                             }
-                        if (target != null)
+                        if (target != null) {
                             target.addPlayer(solist.get(0).getName());
+                            target.sendMessage("Autobalancer", "Player " + solist.get(0).getName() + " joined to squad");
+                        }
                             //todo refactor solo balance
                             //todo: possiblity to add solo-player in auto-created squads?
+                            //todo: message to squad w/ new squad playerlist
                     }
                     //otherwise balance players
                     else if (curr_squad == null)
@@ -378,8 +381,10 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
                     processed++;
                     if (processed >= required) {
                         required+= sqs_mems;
+                        curr_squad.sendMessage("Autobalancer", "Check /squad view plz");
                         curr_squad = null;
                     }
+                    //todo: autobalancer adequate messages: autocreated squads list
                 }
             }
         }
@@ -873,6 +878,14 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
             CFG.set("ZoneDamageMultiplier", 2);
             LOG.info("[ROYALE] Fixed zone damage multiplier. Damage will be multiplied by 2 every zone");
         }
+        CFG.getBoolean("OutsideZoneBreakingEnable", true);
+        LOG.info("[ROYALE] Can players destroy blocks outside zone? "+ Boolean.toString(CFG.getBoolean("OutsideZoneBreakingEnable")));
+        if (CFG.getInt("OutsideZoneBreakingDistance", 3) < 1) {
+            CFG.set("OutsideZoneBreakingDistance", 3);
+            LOG.info("[ROYALE] Fixed autobreaking distance. New distance = 3");
+        }
+        //todo: too large distance - check
+        //todo: freq + impl still required
         CFG.getBoolean("GiveZoneMap", true);
         LOG.info("[ROYALE] Give players zone map? "+ Boolean.toString(CFG.getBoolean("GiveZoneMap")));
         CFG.getBoolean("EnableElytraStart", true);

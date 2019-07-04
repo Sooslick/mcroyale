@@ -169,77 +169,25 @@ public class eventHandler implements Listener {
         if (e.isCancelled()) return;
         if (!Z.GameActive) {e.setCancelled(true); return;}
         if (!Z.MonstersActive) {
-            if (e.getEntityType().equals(EntityType.BLAZE)) {
-                e.setCancelled(true);
-                return;
-            }
-            if (e.getEntityType().equals(EntityType.CAVE_SPIDER)) {
-                e.setCancelled(true);
-                return;
-            }
-            if (e.getEntityType().equals(EntityType.CREEPER)) {
-                e.setCancelled(true);
-                return;
-            }
-            if (e.getEntityType().equals(EntityType.ELDER_GUARDIAN)) {
-                e.setCancelled(true);
-                return;
-            }
-            if (e.getEntityType().equals(EntityType.ENDERMAN)) {
-                e.setCancelled(true);
-                return;
-            }
-            if (e.getEntityType().equals(EntityType.EVOKER)) {
-                e.setCancelled(true);
-                return;
-            }
-            if (e.getEntityType().equals(EntityType.GHAST)) {
-                e.setCancelled(true);
-                return;
-            }
-            if (e.getEntityType().equals(EntityType.HUSK)) {
-                e.setCancelled(true);
-                return;
-            }
-            if (e.getEntityType().equals(EntityType.ILLUSIONER)) {
-                e.setCancelled(true);
-                return;
-            }
-            if (e.getEntityType().equals(EntityType.MAGMA_CUBE)) {
-                e.setCancelled(true);
-                return;
-            }
-            if (e.getEntityType().equals(EntityType.SKELETON)) {
-                e.setCancelled(true);
-                return;
-            }
-            if (e.getEntityType().equals(EntityType.SLIME)) {
-                e.setCancelled(true);
-                return;
-            }
-            if (e.getEntityType().equals(EntityType.SPIDER)) {
-                e.setCancelled(true);
-                return;
-            }
-            if (e.getEntityType().equals(EntityType.WITCH)) {
-                e.setCancelled(true);
-                return;
-            }
-            if (e.getEntityType().equals(EntityType.WITHER)) {
-                e.setCancelled(true);
-                return;
-            }
-            if (e.getEntityType().equals(EntityType.WITHER_SKELETON)) {
-                e.setCancelled(true);
-                return;
-            }
-            if (e.getEntityType().equals(EntityType.ZOMBIE)) {
-                e.setCancelled(true);
-                return;
-            }
-            if (e.getEntityType().equals(EntityType.ZOMBIE_VILLAGER)) {
-                e.setCancelled(true);
-                return;
+            switch (e.getEntityType()) {
+                case BLAZE:
+                case CAVE_SPIDER:
+                case CREEPER:
+                case ELDER_GUARDIAN:
+                case ENDERMAN:
+                case EVOKER:
+                case GHAST:
+                case HUSK:
+                case ILLUSIONER:
+                case MAGMA_CUBE:
+                case SKELETON:
+                case SLIME:
+                case SPIDER:
+                case WITCH:
+                case WITHER_SKELETON:
+                case ZOMBIE:
+                case ZOMBIE_VILLAGER:
+                    e.setCancelled(true);
             }
         }
         else {
@@ -251,6 +199,8 @@ public class eventHandler implements Listener {
                         Z.mob_total.put(k, 0);
                     }
                     Z.mob_total.put(k, Z.mob_total.get(k) + 1);
+                    if (e.getLocation().getBlockY() < 56)               //spawns in caves anyway without restrictions
+                        return;
                     if (Math.random() > Z.CFG.getConfigurationSection("MonsterSpawns").getDouble(k, 1)) {
                         Z.mob_despawned.put(k, Z.mob_despawned.get(k) + 1);
                         e.setCancelled(true);
@@ -258,7 +208,6 @@ public class eventHandler implements Listener {
                     }
                 }
         }
-        return;
     }
 
     @EventHandler
@@ -276,28 +225,22 @@ public class eventHandler implements Listener {
     {
         if (e.isCancelled())
             return;
-
         checkContainer(e.getBlockPlaced());
     }
 
     private void checkContainer(Block b) {
-        if (b.getType().equals(Material.CHEST))
-            Z.trackChest(b.getLocation());
-        else if (b.getType().equals(Material.FURNACE))
-            Z.trackChest(b.getLocation());
-        else if (b.getType().equals(Material.DISPENSER))
-            Z.trackChest(b.getLocation());
-        else if (b.getType().equals(Material.ENDER_CHEST))
-            Z.trackChest(b.getLocation());
-        else if (b.getType().equals(Material.TRAPPED_CHEST))
-            Z.trackChest(b.getLocation());
-        else if (b.getType().equals(Material.FURNACE))
-            Z.trackChest(b.getLocation());
-        else if (b.getType().equals(Material.HOPPER))
-            Z.trackChest(b.getLocation());
-        else if (b.getType().equals(Material.DROPPER))
-            Z.trackChest(b.getLocation());
-        else if (b.getType().equals(Material.BREWING_STAND))
-            Z.trackChest(b.getLocation());
+        switch (b.getType()) {
+            case BREWING_STAND:
+            case BURNING_FURNACE:
+            case CHEST:
+            case DISPENSER:
+            case DROPPER:
+            case ENDER_CHEST:
+            case FURNACE:
+            case HOPPER:
+            case TRAPPED_CHEST:
+                Z.trackChest(b.getLocation());
+                break;
+        }
     }
 }

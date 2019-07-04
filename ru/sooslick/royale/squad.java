@@ -1,5 +1,6 @@
 package ru.sooslick.royale;
 
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scoreboard.Scoreboard;
@@ -120,4 +121,11 @@ public class squad {
     public ItemStack getMap() {return MapItem;}
 
     public void setMap(ItemStack is) {MapItem = is;}
+
+    public void sendMessage(String from, String msg) {
+        StringBuilder str = new StringBuilder().append("§7§i[Team] ").append(from).append(": ").append(msg);
+        for (String s : players) {
+            Bukkit.getPlayer(s).sendMessage(str.toString());
+        }
+    }
 }

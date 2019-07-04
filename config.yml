@@ -23,6 +23,8 @@ RedzoneMaxPause: 90
 RedzoneMinZoneSize: 250
 ZoneStartDamage: 0.01
 ZoneDamageMultiplier: 2
+OutsideZoneBreakingEnable: true
+OutsideZoneBreakingDistance: 3
 GiveZoneMap: true
 EnableElytraStart: true
 StartFallHeight: 1600
