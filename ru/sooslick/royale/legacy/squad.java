@@ -1,4 +1,4 @@
-package ru.sooslick.royale;
+package ru.sooslick.royale.legacy;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;

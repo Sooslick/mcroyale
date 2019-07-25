@@ -1,4 +1,4 @@
-package ru.sooslick.royale;
+package ru.sooslick.royale.legacy;
 
 import org.bukkit.*;
 import org.bukkit.block.Block;
@@ -13,7 +13,6 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.map.MapView;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionType;
 import org.bukkit.scoreboard.Scoreboard;
@@ -27,7 +26,7 @@ import java.util.logging.Logger;
 public class royale extends JavaPlugin implements CommandExecutor, Listener
 {
     public Logger LOG;
-    public ru.sooslick.royale.royale ROYALE;
+    public royale ROYALE;
     public Runnable ZONE_SECOND_PROCESSOR;
     public Runnable SQUAD_INVITE_PROCESSOR;
     public Runnable SD_PROCESSOR;

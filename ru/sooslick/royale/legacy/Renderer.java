@@ -1,11 +1,10 @@
-package ru.sooslick.royale;
+package ru.sooslick.royale.legacy;
 
 import org.bukkit.Bukkit;
 import org.bukkit.WorldBorder;
 import org.bukkit.entity.Player;
 import org.bukkit.map.*;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 
 /**

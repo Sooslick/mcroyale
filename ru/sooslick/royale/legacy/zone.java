@@ -1,4 +1,4 @@
-package ru.sooslick.royale;
+package ru.sooslick.royale.legacy;
 
 import org.bukkit.*;
 import org.bukkit.block.Block;
@@ -19,7 +19,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.FireworkMeta;
 import org.bukkit.inventory.meta.PotionMeta;
-import org.bukkit.map.MapCanvas;
 import org.bukkit.map.MapView;
 import org.bukkit.potion.PotionData;
 import org.bukkit.potion.PotionType;
