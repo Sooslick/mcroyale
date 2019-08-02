@@ -15,16 +15,18 @@ LavaFlowZoneSize: 16
 LavaFlowSpeed: 20
 EnableRedzone: true
 RedzoneRadius: 25
-RedzoneLength: 100
+RedzonePeriod: 10
+RedzoneLength: 10
 RedzoneDensity: 5
 FirstRedzoneTime: 350
-RedzoneMinPause: 40
-RedzoneMaxPause: 90
+RedzoneMinPause: 60
+RedzoneMaxPause: 120
 RedzoneMinZoneSize: 250
 ZoneStartDamage: 0.01
 ZoneDamageMultiplier: 2
 OutsideZoneBreakingEnable: true
 OutsideZoneBreakingDistance: 3
+OutsideZoneBreakingPeriod: 5
 GiveZoneMap: true
 EnableElytraStart: true
 StartFallHeight: 1600
@@ -50,8 +52,8 @@ RestoreChestBlock: MOSSY_COBBLESTONE
 AirdropEnable: true
 AirdropAlert: true
 FirstAirdropTime: 250
-AirdropMinPause: 100
-AirdropMaxPause: 200
+AirdropMinPause: 150
+AirdropMaxPause: 240
 AirdropMinZoneSize: 300
 AirdropItems:
   AIR: 1000
@@ -74,4 +76,3 @@ Potions:
 StackableItems:
   ARROW: 10
   DIAMOND: 5
-

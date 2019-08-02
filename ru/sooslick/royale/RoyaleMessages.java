@@ -1,0 +1,68 @@
+package ru.sooslick.royale;
+
+public class RoyaleMessages {
+
+    public static String prefix = "[Royale] ";
+    public static String onEnable = "Loading mcRoyale...";
+    public static String createDataFolder = "Data folder created!";
+    public static String dataFolderException = "§4Can't create data folder! Player's statistics and game configuration will not be saved.";
+    public static String createConfig = "Default config created!";
+    public static String createConfigException = "§4Can't create plugin.yml! Game configuration will not be saved!";
+    public static String zoneStartSize = "Gamezone start size: %s blocks";
+    public static String zonePreStartSize = "%s";
+    public static String zoneStartTimer = "%s";
+    public static String zoneStartDelay = "%s";
+    public static String zoneEndSize = "%s";
+    public static String zoneEndSpeed = "%s";
+    public static String zoneNewSizeMultiplier = "%s";
+    public static String zoneProcessorPeriod = "%s";
+    public static String zoneWaitTimerMultiplier = "%s";
+    public static String zoneShrinkTimerMultiplier = "%s";
+    public static String zoneCenterOffsetEnabled = "%s";
+    public static String zoneStartDamage = "%s";
+    public static String zoneDamageMultiplier = "%s";
+    public static String zoneLavaFlowSize = "%s";
+    public static String lavaFlowPeriod = "%s";
+    public static String redzoneEnabled = "%s";
+    public static String redzoneRadius = "%s";
+    public static String redzonePeriod = "%s";
+    public static String redzoneDuration = "%s";
+    public static String redzoneDensity = "%s";
+    public static String redzoneStartDelay = "%s";
+    public static String redzoneDelayMin = "%s";
+    public static String redzoneDelayMax = "%s";
+    public static String redzoneDisableSize = "%s";
+    public static String monstersEnabled = "%s";
+    public static String monstersStartDelay = "%s";
+    public static String monstersSpawnChances = "%s";
+    public static String elytraStartEnabled = "%s";
+    public static String elytraFallHeight = "%s";
+    public static String lobbyMinVotestarters = "%s";
+    public static String lobbyMinVotestartersPercent = "%s";
+    public static String lobbyPostGameCommandEnabled = "%s";
+    public static String lobbyPostGameCommand = "%s";
+    public static String lobbyPostGameCommandDelay = "%s";
+    public static String squadMaxMembers = "%s";
+    public static String squadNametagVisiblity = "%s";
+    public static String squadFriendlyFireEnabled = "%s";
+    public static String squadAutoBalancingEnabled = "%s";
+    public static String gameOutsideBreakingEnabled = "%s";
+    public static String gameOutsideBreakingMaxDistance = "%s";
+    public static String gameOutsideBreakingPeriod = "%s";
+    public static String gameGiveZoneMap = "%s";
+    public static String gameContainerTrackingEnabled = "%s";
+    public static String gameContainerReplacmentMaterial = "%s";
+    public static String airdropEnabled = "%s";
+    public static String airdropAlertEnabled = "%s";
+    public static String airdropStartDelay = "%s";
+    public static String airdropDelayMin = "%s";
+    public static String airdropDelayMax = "%s";
+    public static String airdropDisableSize = "%s";
+    public static String airdropItems = "%s";
+    public static String airdropEnchantedItemChance = "%s";
+    public static String airdropEnchantments = "%s";
+    public static String airdropPotions = "%s";
+    public static String airdropStackableItems = "%s";
+
+    public static String suffixRed = "§4";
+}
