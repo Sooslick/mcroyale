@@ -184,6 +184,7 @@ public class RoyaleConfig {
         String suffixNone = "";
         String suffix = suffixNone;
 
+        //todo: refactor. Rename config.yml fields
         zoneStartSize = cfg.getInt("StartZoneSize", 2048);
         if ((zoneStartSize < 32) || (zoneStartSize > 4096)) {
             zoneStartSize = 2048;
@@ -580,17 +581,25 @@ public class RoyaleConfig {
         LOG = l;
     }
 
-    /*
-    private static void cfgGetInt(FileConfiguration cfg, String field, int dflt, int vmin, int vmax) throws NoSuchFieldException {
-        Field rcf = RoyaleConfig.class.getDeclaredField(field);
-        Field rmf = RoyaleMessages.class.getDeclaredField(field);
-        int i = cfg.getInt(field, dflt);
-        if (i < vmin || i > vmax) { //todo - lambda
-            i = dflt;
-            //suffix
+    private static void cfgGetInt(FileConfiguration cfg, String field, int dflt, Validator v) {
+        try {
+            boolean useSuffix = false;
+            Field rcf = RoyaleConfig.class.getDeclaredField(field);
+            Field rmf = RoyaleMessages.class.getDeclaredField(field);
+            int orig = cfg.getInt(field, dflt);
+            int fixed = v.validate(orig, dflt);
+            if (orig != fixed) {
+                useSuffix = true;
+            }
+            rcf.set(RoyaleConfig.class, fixed);
+            LOG.info(RoyaleMessages.prefix + (useSuffix ? RoyaleMessages.suffixRed : RoyaleMessages.suffixNone)
+                    + String.format((String)rmf.get(RoyaleMessages.class), (int)rcf.get(RoyaleConfig.class)));
+        } catch (NoSuchFieldException e) {
+            LOG.warning(RoyaleMessages.suffixRed + RoyaleMessages.prefix + String.format(RoyaleMessages.noSuchConfigField, field));
+        } catch (IllegalAccessException e) {
+            LOG.warning(RoyaleMessages.suffixRed + RoyaleMessages.prefix + String.format(RoyaleMessages.cantWriteConfigField, field));
         }
-        LOG.info(RoyaleMessages.prefix +suffix + rmf);  //todo: exception?
-        //todo - uncomment & test
     }
-    */
+
+    //todo: cfgGetDouble, Boolean, etc...
 }

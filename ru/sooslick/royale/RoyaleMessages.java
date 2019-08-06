@@ -63,6 +63,10 @@ public class RoyaleMessages {
     public static String airdropEnchantments = "%s";
     public static String airdropPotions = "%s";
     public static String airdropStackableItems = "%s";
+    public static String noSuchConfigField = "Config field '%s' not found";
+    public static String cantWriteConfigField = "Config field '%s' not available";
+    //todo: messages
 
+    public static String suffixNone = "";
     public static String suffixRed = "§4";
 }
