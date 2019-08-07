@@ -65,6 +65,7 @@ public class RoyaleMessages {
     public static String airdropStackableItems = "%s";
     public static String noSuchConfigField = "Config field '%s' not found";
     public static String cantWriteConfigField = "Config field '%s' not available";
+    public static String noSuchEnum = "Unknown param: %s";
     //todo: messages
 
     public static String suffixNone = "";

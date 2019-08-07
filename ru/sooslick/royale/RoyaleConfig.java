@@ -1,6 +1,7 @@
 package ru.sooslick.royale;
 
 import org.bukkit.Material;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.EntityType;
@@ -9,6 +10,7 @@ import org.bukkit.scoreboard.Team;
 
 import java.lang.reflect.Field;
 import java.util.HashMap;
+import java.util.Set;
 import java.util.logging.Logger;
 
 public class RoyaleConfig {
@@ -135,7 +137,10 @@ public class RoyaleConfig {
 
     public static HashMap<EntityType, Double> getDefaultMonsters() {
         HashMap<EntityType, Double> hm = new HashMap<>();
-        hm.put(EntityType.ZOMBIE, 0.95);
+        hm.put(EntityType.ZOMBIE, 0.5);
+        hm.put(EntityType.SKELETON, 0.5);
+        hm.put(EntityType.CREEPER, 0.5);
+        hm.put(EntityType.WITCH, 0.25);
         return hm;
     }
 
@@ -146,7 +151,7 @@ public class RoyaleConfig {
         hm.put(Material.ARROW, 20);
         hm.put(Material.BOW, 10);
         hm.put(Material.IRON_SWORD, 2);
-        hm.put(Material.POTION, 1);
+        hm.put(Material.SPLASH_POTION, 1);
         return hm;
     }
 
@@ -184,46 +189,12 @@ public class RoyaleConfig {
         String suffixNone = "";
         String suffix = suffixNone;
 
-        //todo: refactor. Rename config.yml fields
-        zoneStartSize = cfg.getInt("StartZoneSize", 2048);
-        if ((zoneStartSize < 32) || (zoneStartSize > 4096)) {
-            zoneStartSize = 2048;
-            suffix = suffixRed;
-        }
-        LOG.info(RoyaleMessages.prefix + suffix + String.format(RoyaleMessages.zoneStartSize, zoneStartSize));
-        suffix = suffixNone;
-
-        zonePreStartSize = cfg.getInt("PreStartZoneSize", 2055);
-        if ((zonePreStartSize < zoneStartSize) || (zonePreStartSize > 4200)) {
-            zonePreStartSize = zoneStartSize + 5;
-            suffix = suffixRed;
-        }
-        LOG.info(RoyaleMessages.prefix + suffix + String.format(RoyaleMessages.zonePreStartSize, zonePreStartSize));
-        suffix = suffixNone;
-
-        zoneStartDelay = cfg.getInt("PreStartTimer", 60);
-        if ((zoneStartDelay < 0) || (zoneStartDelay > 300)) {
-            zoneStartDelay = 60;
-            suffix = suffixRed;
-        }
-        LOG.info(RoyaleMessages.prefix + suffix + String.format(RoyaleMessages.zoneStartDelay, zoneStartDelay));
-        suffix = suffixNone;
-
-        zoneStartTimer = cfg.getInt("StartTimer", 300);
-        if ((zoneStartTimer < 60) || (zoneStartTimer > 1000)) {
-            zoneStartTimer = 300;
-            suffix = suffixRed;
-        }
-        LOG.info(RoyaleMessages.prefix + suffix + String.format(RoyaleMessages.zoneStartTimer, zoneStartTimer));
-        suffix = suffixNone;
-
-        zoneEndSize = cfg.getInt("EndZoneSize", 100);
-        if ((zoneEndSize < 16) || (zoneEndSize > zoneStartSize / 2)) {
-            zoneEndSize = (zoneStartSize > 200) ? 100 : Math.floorDiv(zoneStartSize, 2);
-            suffix = suffixRed;
-        }
-        LOG.info(RoyaleMessages.prefix + suffix + String.format(RoyaleMessages.zoneEndSize, zoneEndSize));
-        suffix = suffixNone;
+        cfgGetInt(cfg, "zoneStartSize",    2048,            (val, def) -> {if (val < 1             || val > 4096)            return def; else return val;} );
+        cfgGetInt(cfg, "zonePreStartSize", zoneStartSize+5, (val, def) -> {if (val < zoneStartSize || val > 4200)            return def; else return val;} );
+        cfgGetInt(cfg, "zoneStartDelay",   60,              (val, def) -> {if (val < 0             || val > 300)             return def; else return val;} );
+        cfgGetInt(cfg, "zoneStartTimer",   300,             (val, def) -> {if (val < 60            || val > 1000)            return def; else return val;} );
+        cfgGetInt(cfg, "zoneEndSize",      100,             (val, def) -> {if (val < 1             || val > zoneStartSize)   return def; else return val;} );
+        //todo etc etc...
 
         zoneEndSpeed = cfg.getDouble("EndZoneSpeed", 0.5D);
         if ((zoneEndSpeed <= 0) || (zoneEndSpeed > 5)) {
@@ -378,15 +349,25 @@ public class RoyaleConfig {
         LOG.info(RoyaleMessages.prefix + suffix + String.format(RoyaleMessages.monstersStartDelay, monstersStartDelay));
         suffix = suffixNone;
 
-        /* todo
-        monstersSpawnChances =
+        //monsterSpawnChances configurationSection
+        ConfigurationSection cs = cfg.getConfigurationSection("monstersSpawnChances");
+        Set<String> monsters = cs.getKeys(false);
+        monstersSpawnChances = new HashMap<>();
+        for (String s : monsters) {
+            try {
+                monstersSpawnChances.put(EntityType.valueOf(s), cs.getDouble(s));
+            } catch (IllegalArgumentException e) {
+                LOG.warning(RoyaleMessages.suffixRed + RoyaleMessages.prefix + String.format(RoyaleMessages.noSuchEnum, s));
+            }
+        }
+        //todo log.info
+
         if (cfg.getConfigurationSection("MonsterSpawns").getKeys(false).size() == 0) {
             LOG.info("[Royale] MonsterSpawns list is empty?");
             HashMap<String, Double> hm = new HashMap<>();
             hm.put(EntityType.ZOMBIE.toString(), 0.95);
             cfg.createSection("MonsterSpawns", hm);
         }
-        */
 
         elytraStartEnabled = cfg.getBoolean("EnableElytraStart", true);
         LOG.info(RoyaleMessages.prefix + suffix + String.format(RoyaleMessages.elytraStartEnabled, elytraStartEnabled));
@@ -442,7 +423,7 @@ public class RoyaleConfig {
         LOG.info(RoyaleMessages.prefix + suffix + String.format(RoyaleMessages.squadMaxMembers, squadMaxMembers));
         suffix = suffixNone;
 
-        //todo: valueOf(not Enum value) - exception?
+        //todo: valueOf(not Enum value) - handle exception
         squadNametagVisiblity = Team.OptionStatus.valueOf(cfg.getString("NametagVisiblity", "FOR_OWN_TEAM"));
         LOG.info(RoyaleMessages.prefix + suffix + String.format(RoyaleMessages.squadNametagVisiblity, squadNametagVisiblity));
 
@@ -477,7 +458,7 @@ public class RoyaleConfig {
         gameContainerTrackingEnabled = cfg.getBoolean("EnableChestTracking", true);
         LOG.info(RoyaleMessages.prefix + suffix + String.format(RoyaleMessages.gameContainerTrackingEnabled, gameContainerTrackingEnabled));
 
-        //todo: valueOf(not Enum value) - exception?
+        //todo: valueOf(not Enum value)
         gameContainerReplacmentMaterial = Material.valueOf(cfg.getString("RestoreChestBlock", "MOSSY_COBBLESTONE"));
         LOG.info(RoyaleMessages.prefix + suffix + String.format(RoyaleMessages.gameContainerReplacmentMaterial, gameContainerReplacmentMaterial));
 
@@ -519,14 +500,18 @@ public class RoyaleConfig {
         LOG.info(RoyaleMessages.prefix + suffix + String.format(RoyaleMessages.airdropDisableSize, airdropDisableSize));
         suffix = suffixNone;
 
-        /* todo
-        airdropItems = getDefaultAirdropItems();
-        if (cfg.getConfigurationSection("AirdropItems").getKeys(false).size() == 0) {
-            LOG.info("[Royale] AirdropItems list is empty?");
-            HashMap<String, Integer> hm = new HashMap<>();
-            hm.put(Material.AIR.toString(), 1000);
-            cfg.createSection("AirdropItems", hm);
-        } */
+        //airdropItems configurationSection
+        cs = cfg.getConfigurationSection("airdropItems");
+        Set<String> items = cs.getKeys(false);
+        airdropItems = new HashMap<>();
+        for (String s : items) {
+            try {
+                airdropItems.put(Material.valueOf(s), cs.getInt(s));
+            } catch (IllegalArgumentException e) {
+                LOG.warning(RoyaleMessages.suffixRed + RoyaleMessages.prefix + String.format(RoyaleMessages.noSuchEnum, s));
+            }
+        }
+        //todo log.info
 
         airdropEnchantedItemChance = cfg.getDouble("EnchantedItems", 0.1);
         if (airdropEnchantedItemChance < 0 || airdropEnchantedItemChance > 1) {

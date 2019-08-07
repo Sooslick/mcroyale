@@ -1,78 +1,77 @@
-#Royale Processor Frequency defines how often game data will be processed.
-#Default value 20 means that every 20 ticks (or every second) game data such as game zone or alive players will be recalculated
-RoyaleProcessorFrequency: 20
-PreStartZoneSize: 2055
-StartZoneSize: 2048
-NewZoneSizeMultiplier: 0.5
-PreStartTimer: 60
-StartTimer: 300
-WaitMultiplier: 0.75
-ShrinkMultiplier: 0.67
-EnableCenterOffset: true
-EndZoneSize: 100
-EndZoneSpeed: 0.5
-LavaFlowZoneSize: 16
-LavaFlowSpeed: 20
-EnableRedzone: true
-RedzoneRadius: 25
-RedzonePeriod: 10
-RedzoneLength: 10
-RedzoneDensity: 5
-FirstRedzoneTime: 350
-RedzoneMinPause: 60
-RedzoneMaxPause: 120
-RedzoneMinZoneSize: 250
-ZoneStartDamage: 0.01
-ZoneDamageMultiplier: 2
-OutsideZoneBreakingEnable: true
-OutsideZoneBreakingDistance: 3
-OutsideZoneBreakingPeriod: 5
-GiveZoneMap: true
-EnableElytraStart: true
-StartFallHeight: 1600
-EnableMonsters: true
-EnableMonstersTime: 310
-MonsterSpawns:
+zoneStartSize: 2048
+zonePreStartSize: 2055
+zoneStartTimer: 300
+zoneStartDelay: 60
+zoneEndSize: 100
+zoneEndSpeed: 0.5
+zoneNewSizeMultiplier: 0.5
+zoneProcessorPeriod: 10
+zoneWaitTimerMultiplier: 0.75
+zoneShrinkTimerMultiplier: 0.66
+zoneCenterOffsetEnabled: true
+zoneStartDamage: 0.01
+zoneDamageMultiplier: 2
+zoneLavaFlowSize: 16
+lavaFlowPeriod: 30
+redzoneEnabled: true
+redzoneRadius: 25
+redzonePeriod: 10
+redzoneDuration: 20
+redzoneDensity: 5
+redzoneStartDelay: 350
+redzoneDelayMin: 60
+redzoneDelayMax: 120
+redzoneDisableSize: 250
+monstersEnabled: true
+monstersStartDelay: 310
+monstersSpawnChances:
   ZOMBIE: 0.5
   SKELETON: 0.5
   CREEPER: 0.5
-  CAVE_SPIDER: 0.25
   WITCH: 0.25
-MinVotestarts: 3
-MinVotestartPercent: 0.5
-PostGameCommandEnable: true
-PostGameCommandTime: 60
-PostGameCommand: stop
-MaxSquadMembers: 4
-NametagVisiblity: false
-FriendlyFire: true
-EnableSquadBalancing: true
-EnableChestTracking: true
-RestoreChestBlock: MOSSY_COBBLESTONE
-AirdropEnable: true
-AirdropAlert: true
-FirstAirdropTime: 250
-AirdropMinPause: 150
-AirdropMaxPause: 240
-AirdropMinZoneSize: 300
-AirdropItems:
-  AIR: 1000
-  DIAMOND: 40
-  BOW: 90
-  IRON_CHESTPLATE: 100
-  SPLASH_POTION: 120
-  ARROW: 200
-EnchantedItems: 0.1
-Enchantments:
+elytraStartEnabled: true
+elytraFallHeight: 1600
+lobbyMinVotestarters: 3
+lobbyMinVotestartersPercent: 0.51
+lobbyPostGameCommandEnabled: true
+lobbyPostGameCommand: say post-game event triggered
+lobbyPostGameCommandDelay: 60
+squadMaxMembers: 4
+squadNametagVisiblity: FOR_OWN_TEAM
+squadFriendlyFireEnabled: true
+squadAutoBalancingEnabled: true
+gameOutsideBreakingEnabled: true
+gameOutsideBreakingMaxDistance: 3
+gameOutsideBreakingPeriod: 10
+gameGiveZoneMap: true
+gameContainerTrackingEnabled: true
+gameContainerReplacmentMaterial: MOSSY_COBBLESTONE
+airdropEnabled: true
+airdropAlertEnabled: true
+airdropStartDelay: 250
+airdropDelayMin: 120
+airdropDelayMax: 240
+airdropDisableSize: 300
+airdropItems:
+  AIR: 200
+  COBBLESTONE: 100
+  ARROW: 20
+  BOW: 10
+  IRON_SWORD: 2
+  SPLASH_POTION: 1
+airdropEnchantedItemChance: 0.1
+airdropEnchantments:
   BOW:
-    ARROW_DAMAGE: 10
+    ARROW_DAMAGE: 3
     ARROW_KNOCKBACK: 1
-  IRON_CHESTPLATE:
-    PROTECTION_ENVIRONMENTAL: 10
-    PROTECTION_PROJECTILE: 5
-Potions:
+  IRON_SWORD:
+    DAMAGE_ALL: 4
+    KNOCKBACK: 1
+airdropPotions:
   INSTANT_HEAL: 10
+  SPEED: 8
   INSTANT_DAMAGE: 5
-StackableItems:
-  ARROW: 10
-  DIAMOND: 5
+  STRENGTH: 4
+airdropStackableItems:
+  ARROW: 16
+  COBBLESTONE: 64
