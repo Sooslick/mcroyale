@@ -7,6 +7,8 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.EntityType;
 import org.bukkit.potion.PotionType;
 import org.bukkit.scoreboard.Team;
+import ru.sooslick.royale.Validators.DoubleValidator;
+import ru.sooslick.royale.Validators.IntValidator;
 
 import java.lang.reflect.Field;
 import java.util.HashMap;
@@ -189,90 +191,22 @@ public class RoyaleConfig {
         String suffixNone = "";
         String suffix = suffixNone;
 
-        cfgGetInt(cfg, "zoneStartSize",    2048,            (val, def) -> {if (val < 1             || val > 4096)            return def; else return val;} );
-        cfgGetInt(cfg, "zonePreStartSize", zoneStartSize+5, (val, def) -> {if (val < zoneStartSize || val > 4200)            return def; else return val;} );
-        cfgGetInt(cfg, "zoneStartDelay",   60,              (val, def) -> {if (val < 0             || val > 300)             return def; else return val;} );
-        cfgGetInt(cfg, "zoneStartTimer",   300,             (val, def) -> {if (val < 60            || val > 1000)            return def; else return val;} );
-        cfgGetInt(cfg, "zoneEndSize",      100,             (val, def) -> {if (val < 1             || val > zoneStartSize)   return def; else return val;} );
-        //todo etc etc...
-
-        zoneEndSpeed = cfg.getDouble("EndZoneSpeed", 0.5D);
-        if ((zoneEndSpeed <= 0) || (zoneEndSpeed > 5)) {
-            zoneEndSpeed = 0.5;
-            suffix = suffixRed;
-        }
-        LOG.info(RoyaleMessages.prefix + suffix + String.format(RoyaleMessages.zoneEndSpeed, zoneEndSpeed));
-        suffix = suffixNone;
-
-        zoneNewSizeMultiplier = cfg.getDouble("NewZoneSizeMultiplier", 0.5D);
-        if (zoneNewSizeMultiplier <= 0 || zoneNewSizeMultiplier >= 1) {
-            zoneNewSizeMultiplier = 0.5;
-            suffix = suffixRed;
-        }
-        LOG.info(RoyaleMessages.prefix + suffix + String.format(RoyaleMessages.zoneNewSizeMultiplier, zoneNewSizeMultiplier));
-        suffix = suffixNone;
-
-        zoneProcessorPeriod = cfg.getInt("RoyaleProcessorFrequency", 20);
-        if (zoneProcessorPeriod < 1 || zoneProcessorPeriod > 20) {
-            zoneProcessorPeriod = 10;
-            suffix = suffixRed;
-        }
-        LOG.info(RoyaleMessages.prefix + suffix + String.format(RoyaleMessages.zoneProcessorPeriod, zoneProcessorPeriod));
-        suffix = suffixNone;
-
-        zoneWaitTimerMultiplier = cfg.getDouble("WaitMultiplier", 0.75);
-        if (zoneWaitTimerMultiplier <= 0 || zoneWaitTimerMultiplier > 2) {
-            zoneWaitTimerMultiplier = 0.75;
-            suffix = suffixRed;
-        }
-        LOG.info(RoyaleMessages.prefix + suffix + String.format(RoyaleMessages.zoneWaitTimerMultiplier, zoneWaitTimerMultiplier));
-        suffix = suffixNone;
-
-        zoneShrinkTimerMultiplier = cfg.getDouble("ShrinkMultiplier", 0.67);
-        if (zoneShrinkTimerMultiplier <= 0 || zoneShrinkTimerMultiplier > 2) {
-            zoneShrinkTimerMultiplier = 0.667;
-            suffix = suffixRed;
-        }
-        LOG.info(RoyaleMessages.prefix + suffix + String.format(RoyaleMessages.zoneShrinkTimerMultiplier, zoneShrinkTimerMultiplier));
-        suffix = suffixNone;
-
-        zoneCenterOffsetEnabled = cfg.getBoolean("EnableCenterOffset", true);
-        LOG.info(RoyaleMessages.prefix + suffix + String.format(RoyaleMessages.zoneCenterOffsetEnabled, zoneCenterOffsetEnabled));
-
-        zoneStartDamage = cfg.getDouble("ZoneStartDamage", 0.01);
-        if (zoneStartDamage <= 0) {
-            zoneStartDamage = 0.01;
-            suffix = suffixRed;
-        }
-        LOG.info(RoyaleMessages.prefix + suffix + String.format(RoyaleMessages.zoneStartDamage, zoneStartDamage));
-        suffix = suffixNone;
-
-        zoneDamageMultiplier = cfg.getDouble("ZoneDamageMultiplier", 2);
-        if (zoneDamageMultiplier < 1) {
-            zoneDamageMultiplier = 2;
-            suffix = suffixRed;
-        }
-        LOG.info(RoyaleMessages.prefix + suffix + String.format(RoyaleMessages.zoneDamageMultiplier, zoneDamageMultiplier));
-        suffix = suffixNone;
-
-        zoneLavaFlowSize = cfg.getInt("LavaFlowZoneSize", 16);
-        if (zoneLavaFlowSize < 1 || zoneLavaFlowSize > 32) {
-            zoneLavaFlowSize = 16;
-            suffix = suffixRed;
-        }
-        LOG.info(RoyaleMessages.prefix + suffix + String.format(RoyaleMessages.zoneLavaFlowSize, zoneLavaFlowSize));
-        suffix = suffixNone;
-
-        lavaFlowPeriod = cfg.getInt("LavaFlowSpeed", 20);
-        if (lavaFlowPeriod < 1) {
-            lavaFlowPeriod = 20;
-            suffix = suffixRed;
-        }
-        LOG.info(RoyaleMessages.prefix + suffix + String.format(RoyaleMessages.lavaFlowPeriod, lavaFlowPeriod));
-        suffix = suffixNone;
-
-        redzoneEnabled = cfg.getBoolean("EnableRedzone", true);
-        LOG.info(RoyaleMessages.prefix + suffix + String.format(RoyaleMessages.redzoneEnabled, redzoneEnabled));
+        cfgGetInt       (cfg, "zoneStartSize",              2048,            (val, def) -> {if (val < 1             || val > 4096)            return def; else return val;} );
+        cfgGetInt       (cfg, "zonePreStartSize",           zoneStartSize+5, (val, def) -> {if (val < zoneStartSize || val > 4200)            return def; else return val;} );
+        cfgGetInt       (cfg, "zoneStartDelay",             60,              (val, def) -> {if (val < 0             || val > 300)             return def; else return val;} );
+        cfgGetInt       (cfg, "zoneStartTimer",             300,             (val, def) -> {if (val < 60            || val > 1000)            return def; else return val;} );
+        cfgGetInt       (cfg, "zoneEndSize",                100,             (val, def) -> {if (val < 1             || val > zoneStartSize)   return def; else return val;} );
+        cfgGetDouble    (cfg, "zoneEndSpeed",               0.5,             (val, def) -> {if (val <= 0            || val > 5)               return def; else return val;} );
+        cfgGetDouble    (cfg, "zoneNewSizeMultiplier",      0.5,             (val, def) -> {if (val <= 0            || val >= 1)              return def; else return val;} );
+        cfgGetInt       (cfg, "zoneProcessorPeriod",        10,              (val, def) -> {if (val < 1             || val > 20)              return def; else return val;} );
+        cfgGetDouble    (cfg, "zoneWaitTimerMultiplier",    0.75,            (val, def) -> {if (val <= 0            || val > 2)               return def; else return val;} );
+        cfgGetDouble    (cfg, "zoneShrinkTimerMultiplier",  0.666,           (val, def) -> {if (val <= 0            || val > 2)               return def; else return val;} );
+        cfgGetBoolean   (cfg, "zoneCenterOffsetEnabled",    true);
+        cfgGetDouble    (cfg, "zoneStartDamage",            0.01,            (val, def) -> {if (val < 0)                                      return def; else return val;} );
+        cfgGetDouble    (cfg, "zoneDamageMultiplier",       2,               (val, def) -> {if (val < 1)                                      return def; else return val;} );
+        cfgGetInt       (cfg, "zoneLavaFlowSize",           16,              (val, def) -> {if (val < 1             || val > 32)              return def; else return val;} );
+        cfgGetInt       (cfg, "lavaFlowPeriod",             20,              (val, def) -> {if (val < 10)                                     return def; else return val;} );
+        cfgGetBoolean   (cfg, "redzoneEnabled",             true);
 
         redzoneRadius = cfg.getInt("RedzoneRadius", 25);
         if (redzoneRadius < 1 || redzoneRadius > zoneStartSize / 2) {
@@ -566,7 +500,7 @@ public class RoyaleConfig {
         LOG = l;
     }
 
-    private static void cfgGetInt(FileConfiguration cfg, String field, int dflt, Validator v) {
+    private static void cfgGetInt(FileConfiguration cfg, String field, int dflt, IntValidator v) {
         try {
             boolean useSuffix = false;
             Field rcf = RoyaleConfig.class.getDeclaredField(field);
@@ -586,5 +520,40 @@ public class RoyaleConfig {
         }
     }
 
-    //todo: cfgGetDouble, Boolean, etc...
+    private static void cfgGetDouble(FileConfiguration cfg, String field, double dflt, DoubleValidator v) {
+        try {
+            boolean useSuffix = false;
+            Field rcf = RoyaleConfig.class.getDeclaredField(field);
+            Field rmf = RoyaleMessages.class.getDeclaredField(field);
+            double orig = cfg.getDouble(field, dflt);
+            double fixed = v.validate(orig, dflt);
+            if (orig != fixed) {
+                useSuffix = true;
+            }
+            rcf.set(RoyaleConfig.class, fixed);
+            LOG.info(RoyaleMessages.prefix + (useSuffix ? RoyaleMessages.suffixRed : RoyaleMessages.suffixNone)
+                    + String.format((String)rmf.get(RoyaleMessages.class), (double)rcf.get(RoyaleConfig.class)));
+        } catch (NoSuchFieldException e) {
+            LOG.warning(RoyaleMessages.suffixRed + RoyaleMessages.prefix + String.format(RoyaleMessages.noSuchConfigField, field));
+        } catch (IllegalAccessException e) {
+            LOG.warning(RoyaleMessages.suffixRed + RoyaleMessages.prefix + String.format(RoyaleMessages.cantWriteConfigField, field));
+        }
+    }
+
+    private static void cfgGetBoolean(FileConfiguration cfg, String field, boolean dflt) {
+        try {
+            Field rcf = RoyaleConfig.class.getDeclaredField(field);
+            Field rmf = RoyaleMessages.class.getDeclaredField(field);
+            rcf.set(RoyaleConfig.class, cfg.getBoolean(field, dflt));
+            LOG.info(RoyaleMessages.prefix + String.format((String)rmf.get(RoyaleMessages.class), (boolean)rcf.get(RoyaleConfig.class)));
+        } catch (NoSuchFieldException e) {
+            LOG.warning(RoyaleMessages.suffixRed + RoyaleMessages.prefix + String.format(RoyaleMessages.noSuchConfigField, field));
+        } catch (IllegalAccessException e) {
+            LOG.warning(RoyaleMessages.suffixRed + RoyaleMessages.prefix + String.format(RoyaleMessages.cantWriteConfigField, field));
+        }
+
+    }
+
+    //todo: 95% of duplicates: int, cfgGetDouble, Boolean, etc...
+    //todo: can refactor validators in one class?
 }
