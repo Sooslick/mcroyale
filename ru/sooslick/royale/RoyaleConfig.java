@@ -10,10 +10,14 @@ import org.bukkit.scoreboard.Team;
 import ru.sooslick.royale.Validators.DoubleValidator;
 import ru.sooslick.royale.Validators.IntValidator;
 
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Set;
 import java.util.logging.Logger;
+
+import static ru.sooslick.royale.RoyaleMessages.suffixNone;
+import static ru.sooslick.royale.RoyaleMessages.suffixRed;
 
 public class RoyaleConfig {
 
@@ -58,7 +62,7 @@ public class RoyaleConfig {
     public static boolean squadFriendlyFireEnabled;
     public static boolean squadAutoBalancingEnabled;
     public static boolean gameOutsideBreakingEnabled;
-    public static int gameOutsideBreakingMaxDistance;
+    public static double gameOutsideBreakingMaxDistance;
     public static int gameOutsideBreakingPeriod;
     public static boolean gameGiveZoneMap;
     public static boolean gameContainerTrackingEnabled;
@@ -186,102 +190,160 @@ public class RoyaleConfig {
     }
 
     public static void readConfig(FileConfiguration cfg) {
-        //todo: RoyaleMessages.suffix
-        String suffixRed = "§4";
-        String suffixNone = "";
-        String suffix = suffixNone;
+        cfgGetInt(cfg, "zoneStartSize", 2048, (val, def) -> {
+            if (val < 1 || val > 4096) return def;
+            else return val;
+        });
+        cfgGetInt(cfg, "zonePreStartSize", zoneStartSize + 5, (val, def) -> {
+            if (val < zoneStartSize || val > 4200) return def;
+            else return val;
+        });
+        cfgGetInt(cfg, "zoneStartDelay", 60, (val, def) -> {
+            if (val < 0 || val > 300) return def;
+            else return val;
+        });
+        cfgGetInt(cfg, "zoneStartTimer", 300, (val, def) -> {
+            if (val < 60 || val > 1000) return def;
+            else return val;
+        });
+        cfgGetInt(cfg, "zoneEndSize", 100, (val, def) -> {
+            if (val < 1 || val > zoneStartSize) return def;
+            else return val;
+        });
+        cfgGetDouble(cfg, "zoneEndSpeed", 0.5, (val, def) -> {
+            if (val <= 0 || val > 5) return def;
+            else return val;
+        });
+        cfgGetDouble(cfg, "zoneNewSizeMultiplier", 0.5, (val, def) -> {
+            if (val <= 0 || val >= 1) return def;
+            else return val;
+        });
+        cfgGetInt(cfg, "zoneProcessorPeriod", 10, (val, def) -> {
+            if (val < 1 || val > 20) return def;
+            else return val;
+        });
+        cfgGetDouble(cfg, "zoneWaitTimerMultiplier", 0.75, (val, def) -> {
+            if (val <= 0 || val > 2) return def;
+            else return val;
+        });
+        cfgGetDouble(cfg, "zoneShrinkTimerMultiplier", 0.666, (val, def) -> {
+            if (val <= 0 || val > 2) return def;
+            else return val;
+        });
+        cfgGetBoolean(cfg, "zoneCenterOffsetEnabled", true);
+        cfgGetDouble(cfg, "zoneStartDamage", 0.01, (val, def) -> {
+            if (val < 0) return def;
+            else return val;
+        });
+        cfgGetDouble(cfg, "zoneDamageMultiplier", 2, (val, def) -> {
+            if (val < 1) return def;
+            else return val;
+        });
+        cfgGetInt(cfg, "zoneLavaFlowSize", 16, (val, def) -> {
+            if (val < 1 || val > 32) return def;
+            else return val;
+        });
+        cfgGetInt(cfg, "lavaFlowPeriod", 20, (val, def) -> {
+            if (val < 10) return def;
+            else return val;
+        });
+        cfgGetBoolean(cfg, "redzoneEnabled", true);
+        cfgGetInt(cfg, "redzoneRadius", 25, (val, def) -> {
+            if (val < 1 || val > zoneStartSize / 2) return def;
+            else return val;
+        });
+        cfgGetInt(cfg, "redzonePeriod", 10, (val, def) -> {
+            if (val < 1 || val > 100) return def;
+            else return val;
+        });
+        cfgGetInt(cfg, "redzoneDuration", 10, (val, def) -> {
+            if (val < 1 || val > 60) return def;
+            else return val;
+        });
+        cfgGetInt(cfg, "redzoneDensity", 5, (val, def) -> {
+            if (val < 1 || val > redzoneRadius) return def;
+            else return val;
+        });
+        cfgGetInt(cfg, "redzoneStartDelay", 350, (val, def) -> {
+            if (val < 0) return def;
+            else return val;
+        });
+        cfgGetInt(cfg, "redzoneDelayMin", 60, (val, def) -> {
+            if (val < 0) return def;
+            else return val;
+        });
+        cfgGetInt(cfg, "redzoneDelayMax", 120, (val, def) -> {
+            if (val < redzoneDelayMin) return def;
+            else return val;
+        });
+        cfgGetInt(cfg, "redzoneDisableSize", 250, (val, def) -> {
+            if (val < zoneLavaFlowSize) return def;
+            else return val;
+        });
+        cfgGetBoolean(cfg, "monstersEnabled", true);
+        cfgGetInt(cfg, "monstersStartDelay", 310, (val, def) -> {
+            if (val < 0) return def;
+            else return val;
+        });
+        cfgGetBoolean(cfg, "elytraStartEnabled", true);
+        cfgGetInt(cfg, "elytraFallHeight", 1600, (val, def) -> {
+            if (val < 256) return def;
+            else return val;
+        });
+        cfgGetInt(cfg, "lobbyMinVotestarters", 3, (val, def) -> {
+            if (val < 1) return def;
+            else return val;
+        });
+        cfgGetDouble(cfg, "lobbyMinVotestartersPercent", 0.51, (val, def) -> {
+            if (val <= 0 || val > 1) return def;
+            else return val;
+        });
+        cfgGetBoolean(cfg, "lobbyPostGameCommandEnabled", true);
+        cfgGetInt(cfg, "lobbyPostGameCommandDelay", 60, (val, def) -> {
+            if (val < 0) return def;
+            else return val;
+        });
+        cfgGetInt(cfg, "squadMaxMembers", 4, (val, def) -> {
+            if (val < 0) return def;
+            else return val;
+        });
+        cfgGetBoolean(cfg, "squadFriendlyFireEnabled", true);
+        cfgGetBoolean(cfg, "squadAutoBalancingEnabled", true);
+        cfgGetBoolean(cfg, "gameOutsideBreakingEnabled", true);
+        cfgGetDouble(cfg, "gameOutsideBreakingMaxDistance", 3, (val, def) -> {
+            if (val < 2 || val > 10) return def;
+            else return val;
+        });
+        cfgGetInt(cfg, "gameOutsideBreakingPeriod", 5, (val, def) -> {
+            if (val < 1) return def;
+            else return val;
+        });
+        cfgGetBoolean(cfg, "gameGiveZoneMap", true);
+        cfgGetBoolean(cfg, "gameContainerTrackingEnabled", true);
+        cfgGetBoolean(cfg, "airdropEnabled", true);
+        cfgGetBoolean(cfg, "airdropAlertEnabled", true);
+        cfgGetInt(cfg, "airdropStartDelay", 250, (val, def) -> {
+            if (val < 0) return def;
+            else return val;
+        });
+        cfgGetInt(cfg, "airdropDelayMin", 150, (val, def) -> {
+            if (val < 0) return def;
+            else return val;
+        });
+        cfgGetInt(cfg, "airdropDelayMax", 250, (val, def) -> {
+            if (val < airdropDelayMin) return def;
+            else return val;
+        });
+        cfgGetInt(cfg, "airdropDisableSize", zoneEndSize, (val, def) -> {
+            if (val < zoneLavaFlowSize) return def;
+            else return val;
+        });
+        cfgGetDouble(cfg, "airdropEnchantedItemChance", 0.1, (val, def) -> {
+            if (val < 0 || val > 1) return def;
+            else return val;
+        });
 
-        cfgGetInt       (cfg, "zoneStartSize",              2048,            (val, def) -> {if (val < 1             || val > 4096)            return def; else return val;} );
-        cfgGetInt       (cfg, "zonePreStartSize",           zoneStartSize+5, (val, def) -> {if (val < zoneStartSize || val > 4200)            return def; else return val;} );
-        cfgGetInt       (cfg, "zoneStartDelay",             60,              (val, def) -> {if (val < 0             || val > 300)             return def; else return val;} );
-        cfgGetInt       (cfg, "zoneStartTimer",             300,             (val, def) -> {if (val < 60            || val > 1000)            return def; else return val;} );
-        cfgGetInt       (cfg, "zoneEndSize",                100,             (val, def) -> {if (val < 1             || val > zoneStartSize)   return def; else return val;} );
-        cfgGetDouble    (cfg, "zoneEndSpeed",               0.5,             (val, def) -> {if (val <= 0            || val > 5)               return def; else return val;} );
-        cfgGetDouble    (cfg, "zoneNewSizeMultiplier",      0.5,             (val, def) -> {if (val <= 0            || val >= 1)              return def; else return val;} );
-        cfgGetInt       (cfg, "zoneProcessorPeriod",        10,              (val, def) -> {if (val < 1             || val > 20)              return def; else return val;} );
-        cfgGetDouble    (cfg, "zoneWaitTimerMultiplier",    0.75,            (val, def) -> {if (val <= 0            || val > 2)               return def; else return val;} );
-        cfgGetDouble    (cfg, "zoneShrinkTimerMultiplier",  0.666,           (val, def) -> {if (val <= 0            || val > 2)               return def; else return val;} );
-        cfgGetBoolean   (cfg, "zoneCenterOffsetEnabled",    true);
-        cfgGetDouble    (cfg, "zoneStartDamage",            0.01,            (val, def) -> {if (val < 0)                                      return def; else return val;} );
-        cfgGetDouble    (cfg, "zoneDamageMultiplier",       2,               (val, def) -> {if (val < 1)                                      return def; else return val;} );
-        cfgGetInt       (cfg, "zoneLavaFlowSize",           16,              (val, def) -> {if (val < 1             || val > 32)              return def; else return val;} );
-        cfgGetInt       (cfg, "lavaFlowPeriod",             20,              (val, def) -> {if (val < 10)                                     return def; else return val;} );
-        cfgGetBoolean   (cfg, "redzoneEnabled",             true);
-
-        redzoneRadius = cfg.getInt("RedzoneRadius", 25);
-        if (redzoneRadius < 1 || redzoneRadius > zoneStartSize / 2) {
-            redzoneRadius = 25;
-            suffix = suffixRed;
-        }
-        LOG.info(RoyaleMessages.prefix + suffix + String.format(RoyaleMessages.redzoneRadius, redzoneRadius));
-        suffix = suffixNone;
-
-        redzonePeriod = cfg.getInt("RedzonePeriod", 10);
-        if (redzonePeriod < 1 || redzonePeriod > 100) {
-            redzonePeriod = 10;
-            suffix = suffixRed;
-        }
-        LOG.info(RoyaleMessages.prefix + suffix + String.format(RoyaleMessages.redzonePeriod, redzonePeriod));
-        suffix = suffixNone;
-
-        redzoneDuration = cfg.getInt("RedzoneLength", 10);
-        if (redzoneDuration < 1 || redzoneDuration > 60) {
-            redzoneDuration = 10;
-            suffix = suffixRed;
-        }
-        LOG.info(RoyaleMessages.prefix + suffix + String.format(RoyaleMessages.redzoneDuration, redzoneDuration));
-        suffix = suffixNone;
-
-        redzoneDensity = cfg.getInt("RedzoneDensity", 5);
-        if (redzoneDensity < 1 || redzoneDensity > redzoneRadius) {
-            redzoneDensity = 5;
-            suffix = suffixRed;
-        }
-        LOG.info(RoyaleMessages.prefix + suffix + String.format(RoyaleMessages.redzoneDensity, redzoneDensity));
-        suffix = suffixNone;
-
-        redzoneStartDelay = cfg.getInt("FirstRedzoneTime", 350);
-        if (redzoneStartDelay < 0) {
-            redzoneStartDelay = 350;
-            suffix = suffixRed;
-        }
-        LOG.info(RoyaleMessages.prefix + suffix + String.format(RoyaleMessages.redzoneStartDelay, redzoneStartDelay));
-        suffix = suffixNone;
-
-        redzoneDelayMin = cfg.getInt("RedzoneMinPause", 60);
-        if (redzoneDelayMin < 0) {
-            redzoneDelayMin = 60;
-            suffix = suffixRed;
-        }
-        LOG.info(RoyaleMessages.prefix + suffix + String.format(RoyaleMessages.redzoneDelayMin, redzoneDelayMin));
-        suffix = suffixNone;
-
-        redzoneDelayMax = cfg.getInt("RedzoneMaxPause", 120);
-        if (redzoneDelayMax < redzoneDelayMin) {
-            redzoneDelayMax = redzoneDelayMin + 60;
-            suffix = suffixRed;
-        }
-        LOG.info(RoyaleMessages.prefix + suffix + String.format(RoyaleMessages.redzoneDelayMax, redzoneDelayMax));
-        suffix = suffixNone;
-
-        redzoneDisableSize = cfg.getInt("RedzoneMinZoneSize", 250);
-        if (redzoneDisableSize < zoneLavaFlowSize) {
-            redzoneDisableSize = 250;
-            suffix = suffixRed;
-        }
-        LOG.info(RoyaleMessages.prefix + suffix + String.format(RoyaleMessages.redzoneDisableSize, redzoneDisableSize));
-        suffix = suffixNone;
-
-        monstersEnabled = cfg.getBoolean("EnableMonsters", true);
-        LOG.info(RoyaleMessages.prefix + suffix + String.format(RoyaleMessages.monstersEnabled, monstersEnabled));
-
-        monstersStartDelay = cfg.getInt("EnableMonstersTime", 310);
-        if (monstersStartDelay < 0) {
-            monstersStartDelay = 310;
-            suffix = suffixRed;
-        }
-        LOG.info(RoyaleMessages.prefix + suffix + String.format(RoyaleMessages.monstersStartDelay, monstersStartDelay));
-        suffix = suffixNone;
+        //todo: refactor sections
 
         //monsterSpawnChances configurationSection
         ConfigurationSection cs = cfg.getConfigurationSection("monstersSpawnChances");
@@ -291,56 +353,13 @@ public class RoyaleConfig {
             try {
                 monstersSpawnChances.put(EntityType.valueOf(s), cs.getDouble(s));
             } catch (IllegalArgumentException e) {
-                LOG.warning(RoyaleMessages.suffixRed + RoyaleMessages.prefix + String.format(RoyaleMessages.noSuchEnum, s));
+                LOG.warning(suffixRed + RoyaleMessages.prefix + String.format(RoyaleMessages.noSuchEnum, s));
             }
         }
-        //todo log.info
+        LOG.info(RoyaleMessages.prefix + RoyaleMessages.monstersSpawnChances);
 
-        if (cfg.getConfigurationSection("MonsterSpawns").getKeys(false).size() == 0) {
-            LOG.info("[Royale] MonsterSpawns list is empty?");
-            HashMap<String, Double> hm = new HashMap<>();
-            hm.put(EntityType.ZOMBIE.toString(), 0.95);
-            cfg.createSection("MonsterSpawns", hm);
-        }
-
-        elytraStartEnabled = cfg.getBoolean("EnableElytraStart", true);
-        LOG.info(RoyaleMessages.prefix + suffix + String.format(RoyaleMessages.elytraStartEnabled, elytraStartEnabled));
-
-        elytraFallHeight = cfg.getInt("StartFallHeight", 1600);
-        if (elytraFallHeight < 256) {
-            elytraFallHeight = 1600;
-            suffix = suffixRed;
-        }
-        LOG.info(RoyaleMessages.prefix + suffix + String.format(RoyaleMessages.elytraFallHeight, elytraFallHeight));
-        suffix = suffixNone;
-
-        lobbyMinVotestarters = cfg.getInt("MinVotestarts", 3);
-        if (lobbyMinVotestarters < 1) {
-            lobbyMinVotestarters = 3;
-            suffix = suffixRed;
-        }
-        LOG.info(RoyaleMessages.prefix + suffix + String.format(RoyaleMessages.lobbyMinVotestarters, lobbyMinVotestarters));
-        suffix = suffixNone;
-
-        lobbyMinVotestartersPercent = cfg.getDouble("MinVotestartPercent", 0.51);
-        if (lobbyMinVotestartersPercent <= 0 || lobbyMinVotestartersPercent > 1) {
-            lobbyMinVotestartersPercent = 0.51;
-            suffix = suffixRed;
-        }
-        LOG.info(RoyaleMessages.prefix + suffix + String.format(RoyaleMessages.lobbyMinVotestartersPercent, lobbyMinVotestartersPercent));
-        suffix = suffixNone;
-
-        lobbyPostGameCommandEnabled = cfg.getBoolean("PostGameCommandEnable", true);
-        LOG.info(RoyaleMessages.prefix + suffix + String.format(RoyaleMessages.lobbyPostGameCommandEnabled, lobbyPostGameCommandEnabled));
-
-        lobbyPostGameCommandDelay = cfg.getInt("PostGameCommandTime", 60);
-        if (lobbyPostGameCommandDelay < 0) {
-            lobbyPostGameCommandDelay = 60;
-            suffix = suffixRed;
-        }
-        LOG.info(RoyaleMessages.prefix + suffix + String.format(RoyaleMessages.lobbyPostGameCommandDelay, lobbyPostGameCommandDelay));
-        suffix = suffixNone;
-
+        //todo: cfgGetString method
+        String suffix = suffixNone;
         lobbyPostGameCommand = cfg.getString("PostGameCommand", "say post-game event triggered!");
         if (lobbyPostGameCommand.length() == 0) {
             lobbyPostGameCommand = "say post-game event triggered!";
@@ -349,89 +368,22 @@ public class RoyaleConfig {
         LOG.info(RoyaleMessages.prefix + suffix + String.format(RoyaleMessages.lobbyPostGameCommand, lobbyPostGameCommand));
         suffix = suffixNone;
 
-        squadMaxMembers = cfg.getInt("MaxSquadMembers", 4);
-        if (squadMaxMembers <= 0) {
-            squadMaxMembers = 4;
+        try {
+            squadNametagVisiblity = Team.OptionStatus.valueOf(cfg.getString("NametagVisiblity", "FOR_OWN_TEAM"));
+        } catch (IllegalArgumentException e) {
+            squadNametagVisiblity = Team.OptionStatus.FOR_OWN_TEAM;
             suffix = suffixRed;
         }
-        LOG.info(RoyaleMessages.prefix + suffix + String.format(RoyaleMessages.squadMaxMembers, squadMaxMembers));
-        suffix = suffixNone;
-
-        //todo: valueOf(not Enum value) - handle exception
-        squadNametagVisiblity = Team.OptionStatus.valueOf(cfg.getString("NametagVisiblity", "FOR_OWN_TEAM"));
         LOG.info(RoyaleMessages.prefix + suffix + String.format(RoyaleMessages.squadNametagVisiblity, squadNametagVisiblity));
-
-        squadFriendlyFireEnabled = cfg.getBoolean("FriendlyFire", false);
-        LOG.info(RoyaleMessages.prefix + suffix + String.format(RoyaleMessages.squadFriendlyFireEnabled, squadFriendlyFireEnabled));
-
-        squadAutoBalancingEnabled = cfg.getBoolean("EnableSquadBalancing", true);
-        LOG.info(RoyaleMessages.prefix + suffix + String.format(RoyaleMessages.squadAutoBalancingEnabled, squadAutoBalancingEnabled));
-
-        gameOutsideBreakingEnabled = cfg.getBoolean("OutsideZoneBreakingEnable", true);
-        LOG.info(RoyaleMessages.prefix + suffix + String.format(RoyaleMessages.gameOutsideBreakingEnabled, gameOutsideBreakingEnabled));
-
-        gameOutsideBreakingMaxDistance = cfg.getInt("OutsideZoneBreakingDistance", 3);
-        if (gameOutsideBreakingMaxDistance < 2 || gameOutsideBreakingMaxDistance > 10) {
-            gameOutsideBreakingMaxDistance = 3;
-            suffix = suffixRed;
-        }
-        LOG.info(RoyaleMessages.prefix + suffix + String.format(RoyaleMessages.gameOutsideBreakingMaxDistance, gameOutsideBreakingMaxDistance));
         suffix = suffixNone;
 
-        gameOutsideBreakingPeriod = cfg.getInt("OutsideZoneBreakingPeriod", 5);
-        if (gameOutsideBreakingPeriod < 1) {
-            gameOutsideBreakingPeriod = 5;
+        try {
+            gameContainerReplacmentMaterial = Material.valueOf(cfg.getString("RestoreChestBlock", "MOSSY_COBBLESTONE"));
+        } catch (IllegalArgumentException e) {
+            gameContainerReplacmentMaterial = Material.MOSSY_COBBLESTONE;
             suffix = suffixRed;
         }
-        LOG.info(RoyaleMessages.prefix + suffix + String.format(RoyaleMessages.gameOutsideBreakingPeriod, gameOutsideBreakingPeriod));
-        suffix = suffixNone;
-
-        gameGiveZoneMap = cfg.getBoolean("GiveZoneMap", true);
-        LOG.info(RoyaleMessages.prefix + suffix + String.format(RoyaleMessages.gameGiveZoneMap, gameGiveZoneMap));
-
-        gameContainerTrackingEnabled = cfg.getBoolean("EnableChestTracking", true);
-        LOG.info(RoyaleMessages.prefix + suffix + String.format(RoyaleMessages.gameContainerTrackingEnabled, gameContainerTrackingEnabled));
-
-        //todo: valueOf(not Enum value)
-        gameContainerReplacmentMaterial = Material.valueOf(cfg.getString("RestoreChestBlock", "MOSSY_COBBLESTONE"));
         LOG.info(RoyaleMessages.prefix + suffix + String.format(RoyaleMessages.gameContainerReplacmentMaterial, gameContainerReplacmentMaterial));
-
-        airdropEnabled = cfg.getBoolean("AirdropEnable", true);
-        LOG.info(RoyaleMessages.prefix + suffix + String.format(RoyaleMessages.airdropEnabled, airdropEnabled));
-
-        airdropAlertEnabled = cfg.getBoolean("AirdropAlert", true);
-        LOG.info(RoyaleMessages.prefix + suffix + String.format(RoyaleMessages.airdropAlertEnabled, airdropAlertEnabled));
-
-        airdropStartDelay = cfg.getInt("FirstAirdropTime", 250);
-        if (airdropStartDelay < 0) {
-            airdropStartDelay = 250;
-            suffix = suffixRed;
-        }
-        LOG.info(RoyaleMessages.prefix + suffix + String.format(RoyaleMessages.airdropStartDelay, airdropStartDelay));
-        suffix = suffixNone;
-
-        airdropDelayMin = cfg.getInt("AirdropMinPause", 150);
-        if (airdropDelayMin < 0) {
-            airdropDelayMin = 150;
-            suffix = suffixRed;
-        }
-        LOG.info(RoyaleMessages.prefix + suffix + String.format(RoyaleMessages.airdropDelayMin, airdropDelayMin));
-        suffix = suffixNone;
-
-        airdropDelayMax = cfg.getInt("AirdropMaxPause", 240);
-        if (airdropDelayMax < airdropDelayMin) {
-            airdropDelayMax = airdropDelayMin + 90;
-            suffix = suffixRed;
-        }
-        LOG.info(RoyaleMessages.prefix + suffix + String.format(RoyaleMessages.airdropDelayMax, airdropDelayMax));
-        suffix = suffixNone;
-
-        airdropDisableSize = cfg.getInt("AirdropMinZoneSize", 300);
-        if (airdropDisableSize < zoneLavaFlowSize) {
-            airdropDisableSize = zoneEndSize;
-            suffix = suffixRed;
-        }
-        LOG.info(RoyaleMessages.prefix + suffix + String.format(RoyaleMessages.airdropDisableSize, airdropDisableSize));
         suffix = suffixNone;
 
         //airdropItems configurationSection
@@ -442,51 +394,62 @@ public class RoyaleConfig {
             try {
                 airdropItems.put(Material.valueOf(s), cs.getInt(s));
             } catch (IllegalArgumentException e) {
-                LOG.warning(RoyaleMessages.suffixRed + RoyaleMessages.prefix + String.format(RoyaleMessages.noSuchEnum, s));
+                LOG.warning(suffixRed + RoyaleMessages.prefix + String.format(RoyaleMessages.noSuchEnum, s));
             }
         }
-        //todo log.info
+        LOG.info(RoyaleMessages.prefix + RoyaleMessages.airdropItems);
 
-        airdropEnchantedItemChance = cfg.getDouble("EnchantedItems", 0.1);
-        if (airdropEnchantedItemChance < 0 || airdropEnchantedItemChance > 1) {
-            airdropEnchantedItemChance = 0.1;
-            suffix = suffixRed;
+        //airdropEnchantments configurationSection
+        //todo variables names - pizdec
+        cs = cfg.getConfigurationSection("airdropEnchantments");
+        items = cs.getKeys(false);
+        airdropEnchantments = new HashMap<>();
+        for (String s : items) {
+            ConfigurationSection ae = cs.getConfigurationSection(s);
+            HashMap<Enchantment, Integer> hm = new HashMap<>();
+            for (String enc : ae.getKeys(false)) {
+                try {
+                    hm.put(Enchantment.getByName(enc), ae.getInt(enc));
+                } catch (Exception e) {
+                    LOG.warning(suffixRed + RoyaleMessages.prefix + String.format(RoyaleMessages.noSuchEnum, s));
+                }
+            }
+            try {
+                airdropEnchantments.put(Material.valueOf(s), hm);
+            } catch (IllegalArgumentException e) {
+                LOG.warning(suffixRed + RoyaleMessages.prefix + String.format(RoyaleMessages.noSuchEnum, s));
+            }
         }
-        LOG.info(RoyaleMessages.prefix + suffix + String.format(RoyaleMessages.airdropEnchantedItemChance, airdropEnchantedItemChance));
-        suffix = suffixNone;
+        LOG.info(RoyaleMessages.prefix + RoyaleMessages.airdropEnchantments);
 
-        /* todo
-        airdropEnchantments = getDefaultEnchantments();
-        if (cfg.getConfigurationSection("Enchantments").getKeys(false).size() == 0) {
-            LOG.info("[Royale] Enchantments list is empty?");
-            cfg.createSection("Enchantments");
-            ConfigurationSection cs = cfg.getConfigurationSection("Enchantments");
-            HashMap<String, Integer> hm = new HashMap<>();
-            hm.put(Enchantment.ARROW_DAMAGE.toString(), 10);
-            cs.createSection(Material.BOW.toString(), hm);
-        }*/
+        //airdropPotions configurationSection
+        cs = cfg.getConfigurationSection("airdropPotions");
+        Set<String> pots = cs.getKeys(false);
+        airdropPotions = new HashMap<>();
+        for (String s : pots) {
+            try {
+                airdropPotions.put(PotionType.valueOf(s), cs.getInt(s));
+            } catch (IllegalArgumentException e) {
+                LOG.warning(suffixRed + RoyaleMessages.prefix + String.format(RoyaleMessages.noSuchEnum, s));
+            }
+        }
+        LOG.info(RoyaleMessages.prefix + RoyaleMessages.airdropPotions);
 
-        /* todo
-        airdropPotions = getDefaultPotions();
-        if (cfg.getConfigurationSection("Potions").getKeys(false).size() == 0) {
-            LOG.info("[Royale] Potions list is empty?");
-            HashMap<String, Integer> hm = new HashMap<>();
-            hm.put(PotionType.INSTANT_DAMAGE.toString(), 5);
-            cfg.createSection("Potions", hm);
-        }*/
-
-        /* todo
-        airdropStackableItems = getDefaultStackables();
-        if (cfg.getConfigurationSection("StackableItems").getKeys(false).size() == 0) {
-            LOG.info("[Royale] StackableItems list is empty?");
-            HashMap<String, Integer> hm = new HashMap<>();
-            hm.put(Material.ARROW.toString(), 20);
-            cfg.createSection("StackableItems", hm);
-        }*/
+        //airdropStackableItems configurationSection
+        cs = cfg.getConfigurationSection("airdropStackableItems");
+        items = cs.getKeys(false);
+        airdropStackableItems = new HashMap<>();
+        for (String s : items) {
+            try {
+                airdropStackableItems.put(Material.valueOf(s), cs.getInt(s));
+            } catch (IllegalArgumentException e) {
+                LOG.warning(suffixRed + RoyaleMessages.prefix + String.format(RoyaleMessages.noSuchEnum, s));
+            }
+        }
+        LOG.info(RoyaleMessages.prefix + RoyaleMessages.airdropStackableItems);
 
         //todo: refactor if possible
-        //todo: rename config fields
-        //todo: comment config fields
+        //todo: comment config fields in yml
 
         //todo: new features
         //     - map generator
@@ -494,6 +457,17 @@ public class RoyaleConfig {
         //   - background map loading / chest tracking
         //  - portal / beacon features
         // - etc etc etc...
+    }
+
+    public static boolean saveConfig(FileConfiguration cfg) {
+        //todo - write cfg fields by fileconf OR manually write to file every field
+        try {
+            cfg.save("config.yml");     //todo: path/to/file - ?
+            return true;
+        } catch (IOException e) {
+            LOG.warning(suffixRed + RoyaleMessages.prefix + RoyaleMessages.writeConfigException);
+            return false;
+        }
     }
 
     public static void setLogger(Logger l) {
@@ -511,12 +485,12 @@ public class RoyaleConfig {
                 useSuffix = true;
             }
             rcf.set(RoyaleConfig.class, fixed);
-            LOG.info(RoyaleMessages.prefix + (useSuffix ? RoyaleMessages.suffixRed : RoyaleMessages.suffixNone)
-                    + String.format((String)rmf.get(RoyaleMessages.class), (int)rcf.get(RoyaleConfig.class)));
+            LOG.info(RoyaleMessages.prefix + (useSuffix ? suffixRed : suffixNone)
+                    + String.format((String) rmf.get(RoyaleMessages.class), (int) rcf.get(RoyaleConfig.class)));
         } catch (NoSuchFieldException e) {
-            LOG.warning(RoyaleMessages.suffixRed + RoyaleMessages.prefix + String.format(RoyaleMessages.noSuchConfigField, field));
+            LOG.warning(suffixRed + RoyaleMessages.prefix + String.format(RoyaleMessages.noSuchConfigField, field));
         } catch (IllegalAccessException e) {
-            LOG.warning(RoyaleMessages.suffixRed + RoyaleMessages.prefix + String.format(RoyaleMessages.cantWriteConfigField, field));
+            LOG.warning(suffixRed + RoyaleMessages.prefix + String.format(RoyaleMessages.cantWriteConfigField, field));
         }
     }
 
@@ -531,12 +505,12 @@ public class RoyaleConfig {
                 useSuffix = true;
             }
             rcf.set(RoyaleConfig.class, fixed);
-            LOG.info(RoyaleMessages.prefix + (useSuffix ? RoyaleMessages.suffixRed : RoyaleMessages.suffixNone)
-                    + String.format((String)rmf.get(RoyaleMessages.class), (double)rcf.get(RoyaleConfig.class)));
+            LOG.info(RoyaleMessages.prefix + (useSuffix ? suffixRed : suffixNone)
+                    + String.format((String) rmf.get(RoyaleMessages.class), (double) rcf.get(RoyaleConfig.class)));
         } catch (NoSuchFieldException e) {
-            LOG.warning(RoyaleMessages.suffixRed + RoyaleMessages.prefix + String.format(RoyaleMessages.noSuchConfigField, field));
+            LOG.warning(suffixRed + RoyaleMessages.prefix + String.format(RoyaleMessages.noSuchConfigField, field));
         } catch (IllegalAccessException e) {
-            LOG.warning(RoyaleMessages.suffixRed + RoyaleMessages.prefix + String.format(RoyaleMessages.cantWriteConfigField, field));
+            LOG.warning(suffixRed + RoyaleMessages.prefix + String.format(RoyaleMessages.cantWriteConfigField, field));
         }
     }
 
@@ -545,11 +519,11 @@ public class RoyaleConfig {
             Field rcf = RoyaleConfig.class.getDeclaredField(field);
             Field rmf = RoyaleMessages.class.getDeclaredField(field);
             rcf.set(RoyaleConfig.class, cfg.getBoolean(field, dflt));
-            LOG.info(RoyaleMessages.prefix + String.format((String)rmf.get(RoyaleMessages.class), (boolean)rcf.get(RoyaleConfig.class)));
+            LOG.info(RoyaleMessages.prefix + String.format((String) rmf.get(RoyaleMessages.class), (boolean) rcf.get(RoyaleConfig.class)));
         } catch (NoSuchFieldException e) {
-            LOG.warning(RoyaleMessages.suffixRed + RoyaleMessages.prefix + String.format(RoyaleMessages.noSuchConfigField, field));
+            LOG.warning(suffixRed + RoyaleMessages.prefix + String.format(RoyaleMessages.noSuchConfigField, field));
         } catch (IllegalAccessException e) {
-            LOG.warning(RoyaleMessages.suffixRed + RoyaleMessages.prefix + String.format(RoyaleMessages.cantWriteConfigField, field));
+            LOG.warning(suffixRed + RoyaleMessages.prefix + String.format(RoyaleMessages.cantWriteConfigField, field));
         }
 
     }
