@@ -26,6 +26,7 @@ public class Royale extends JavaPlugin {
             LOG.warning(RoyaleMessages.prefix + RoyaleMessages.dataFolderException);
             LOG.warning(ex.getMessage());
         }
+        RoyaleConfig.setConfigFile(getDataFolder().toString() + File.separator + "plugin.yml");
 
         //init config file
         //todo: if datafolder exists - prevent exception

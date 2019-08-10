@@ -7,8 +7,6 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.EntityType;
 import org.bukkit.potion.PotionType;
 import org.bukkit.scoreboard.Team;
-import ru.sooslick.royale.Validators.DoubleValidator;
-import ru.sooslick.royale.Validators.IntValidator;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -22,6 +20,7 @@ import static ru.sooslick.royale.RoyaleMessages.suffixRed;
 public class RoyaleConfig {
 
     private static Logger LOG;
+    private static String YML;
 
     public static int zoneStartSize;
     public static int zonePreStartSize;
@@ -460,9 +459,67 @@ public class RoyaleConfig {
     }
 
     public static boolean saveConfig(FileConfiguration cfg) {
-        //todo - write cfg fields by fileconf OR manually write to file every field
+        cfg.set("zoneStartSize", zoneStartSize);
+        cfg.set("zonePreStartSize", zonePreStartSize);
+        cfg.set("zoneStartTimer", zoneStartTimer);
+        cfg.set("zoneStartDelay", zoneStartDelay);
+        cfg.set("zoneEndSize", zoneEndSize);
+        cfg.set("zoneEndSpeed", zoneEndSpeed);
+        cfg.set("zoneNewSizeMultiplier", zoneNewSizeMultiplier);
+        cfg.set("zoneProcessorPeriod", zoneProcessorPeriod);
+        cfg.set("zoneWaitTimerMultiplier", zoneWaitTimerMultiplier);
+        cfg.set("zoneShrinkTimerMultiplier", zoneShrinkTimerMultiplier);
+        cfg.set("zoneCenterOffsetEnabled", zoneCenterOffsetEnabled);
+        cfg.set("zoneStartDamage", zoneStartDamage);
+        cfg.set("zoneDamageMultiplier", zoneDamageMultiplier);
+        cfg.set("zoneLavaFlowSize", zoneLavaFlowSize);
+        cfg.set("lavaFlowPeriod", lavaFlowPeriod);
+        cfg.set("redzoneEnabled", redzoneEnabled);
+        cfg.set("redzoneRadius", redzoneRadius);
+        cfg.set("redzonePeriod", redzonePeriod);
+        cfg.set("redzoneDuration", redzoneDuration);
+        cfg.set("redzoneDensity", redzoneDensity);
+        cfg.set("redzoneStartDelay", redzoneStartDelay);
+        cfg.set("redzoneDelayMin", redzoneDelayMin);
+        cfg.set("redzoneDelayMax", redzoneDelayMax);
+        cfg.set("redzoneDisableSize", redzoneDisableSize);
+        cfg.set("monstersEnabled", monstersEnabled);
+        cfg.set("monstersStartDelay", monstersStartDelay);
+        saveSection(cfg, "monstersSpawnChances", monstersSpawnChances);
+        cfg.set("elytraStartEnabled", elytraStartEnabled);
+        cfg.set("elytraFallHeight", elytraFallHeight);
+        cfg.set("lobbyMinVotestarters", lobbyMinVotestarters);
+        cfg.set("lobbyMinVotestartersPercent", lobbyMinVotestartersPercent);
+        cfg.set("lobbyPostGameCommandEnabled", lobbyPostGameCommandEnabled);
+        cfg.set("lobbyPostGameCommand", lobbyPostGameCommand);
+        cfg.set("lobbyPostGameCommandDelay", lobbyPostGameCommandDelay);
+        cfg.set("squadMaxMembers", squadMaxMembers);
+        cfg.set("squadNametagVisiblity", squadNametagVisiblity);
+        cfg.set("squadFriendlyFireEnabled", squadFriendlyFireEnabled);
+        cfg.set("squadAutoBalancingEnabled", squadAutoBalancingEnabled);
+        cfg.set("gameOutsideBreakingEnabled", gameOutsideBreakingEnabled);
+        cfg.set("gameOutsideBreakingMaxDistance", gameOutsideBreakingMaxDistance);
+        cfg.set("gameOutsideBreakingPeriod", gameOutsideBreakingPeriod);
+        cfg.set("gameGiveZoneMap", gameGiveZoneMap);
+        cfg.set("gameContainerTrackingEnabled", gameContainerTrackingEnabled);
+        cfg.set("gameContainerReplacmentMaterial", gameContainerReplacmentMaterial);
+        cfg.set("airdropEnabled", airdropEnabled);
+        cfg.set("airdropAlertEnabled", airdropAlertEnabled);
+        cfg.set("airdropStartDelay", airdropStartDelay);
+        cfg.set("airdropDelayMin", airdropDelayMin);
+        cfg.set("airdropDelayMax", airdropDelayMax);
+        cfg.set("airdropDisableSize", airdropDisableSize);
+        saveSection(cfg, "airdropItems", airdropItems);
+        cfg.set("airdropEnchantedItemChance", airdropEnchantedItemChance);
+        //todo: check cycle below // saveSection(cfg, "airdropEnchantments", airdropEnchantments);
+        ConfigurationSection cs = cfg.createSection("airdropEnchantments");
+        for (Material m : airdropEnchantments.keySet()) {
+            saveSection(cs, m.toString(), airdropEnchantments.get(m));
+        }
+        saveSection(cfg, "airdropPotions", airdropPotions);
+        saveSection(cfg, "airdropStackableItems", airdropStackableItems);
         try {
-            cfg.save("config.yml");     //todo: path/to/file - ?
+            cfg.save(YML);
             return true;
         } catch (IOException e) {
             LOG.warning(suffixRed + RoyaleMessages.prefix + RoyaleMessages.writeConfigException);
@@ -470,8 +527,21 @@ public class RoyaleConfig {
         }
     }
 
+    public static <T, V> void saveSection(ConfigurationSection cfg, String section, HashMap<T, V> values) {
+        ConfigurationSection cs = cfg.createSection(section);
+        for (T key : values.keySet()) {
+            cs.set(key.toString(), values.get(key));
+        }
+        //todo: test method
+        //todo: if V is conf section? Impl recursive method
+    }
+
     public static void setLogger(Logger l) {
         LOG = l;
+    }
+
+    public static void setConfigFile(String file) {
+        YML = file;
     }
 
     private static void cfgGetInt(FileConfiguration cfg, String field, int dflt, IntValidator v) {
@@ -530,4 +600,19 @@ public class RoyaleConfig {
 
     //todo: 95% of duplicates: int, cfgGetDouble, Boolean, etc...
     //todo: can refactor validators in one class?
+
+    @FunctionalInterface
+    public interface DoubleValidator {
+
+        double validate(double value, double dflt);
+
+    }
+
+    @FunctionalInterface
+    public interface IntValidator {
+
+        int validate(int value, int dflt);
+
+    }
+
 }
