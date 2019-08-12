@@ -8,6 +8,10 @@ import java.util.logging.Logger;
 public class Royale extends JavaPlugin {
 
     public static Logger LOG;
+    //public static EventHandler eventHandler;
+    public static RoyalePlayerList players;
+    public static RoyaleSquadList squads;
+
     //private boolean datafolderexists? todo
 
     @Override
@@ -46,6 +50,13 @@ public class Royale extends JavaPlugin {
         }
 
         //cfg blah blah blah
+
+        //init player holders
+        players = new RoyalePlayerList();
+        squads = new RoyaleSquadList();
+
+        //init EventHandler: register events
+        getServer().getPluginManager().registerEvents(new EventProcessor(this), this);
     }
 
 }

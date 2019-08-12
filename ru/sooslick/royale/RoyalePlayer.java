@@ -1,6 +1,7 @@
 package ru.sooslick.royale;
 
 import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
 
 public class RoyalePlayer {
@@ -34,6 +35,22 @@ public class RoyalePlayer {
         alive = false;
         alertTimer = 0;
         //todo ref.
+    }
+
+    public void prepare() {
+        player.setExp(0);
+        player.setFoodLevel(20);
+        player.setHealth(20);
+        clearInventory();    //todo impl
+        player.setGameMode(GameMode.SPECTATOR);
+    }
+
+    public void clearInventory() {
+        player.getInventory().clear();
+        player.getInventory().setBoots(null);
+        player.getInventory().setLeggings(null);
+        player.getInventory().setChestplate(null);
+        player.getInventory().setHelmet(null);
     }
 
     public Player getPlayer() {
