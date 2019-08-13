@@ -6,35 +6,53 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
+import static ru.sooslick.royale.Royale.players;
+
 public class EventProcessor implements Listener {
 
     private static Royale R;
 
     public EventProcessor(Royale royale) {
         R = royale;
-        //todo get RoyalePlayerList
+        //todo - is necessary rm variable R bcs static references?
     }
 
     @EventHandler
     public void onJoin(PlayerJoinEvent e) {
         Player p = e.getPlayer();
-        //todo: check if joined player presents in RoyalePlayerList
-        //todo: prepare if killed or game !started
-        //otherwise
-        RoyalePlayer rp = new RoyalePlayer(p);
-        //todo add rp to rplist
+        RoyalePlayer rp = players.getPlayerByName(p.getName());
+
+        //check if player reconnected
+        if (rp != null) {
+            rp.setPlayer(p);
+
+            //check if player reconnected while GAME state
+            if (Royale.gameState.equals(GameState.GAME)) {
+                //todo check isPlaying state
+                // if isPlaying -> restore inv
+                // else -> prepare();
+                //todo messages
+            }
+
+            //otherwise just join as spectator
+            else {
+                rp.prepare();
+                //todo messages
+            }
+        }
+
+        //RoyalePlayer not found - just join as spectator
+        rp = new RoyalePlayer(p);
+        players.add(rp);
         rp.prepare();
         //todo: messages
     }
 
     @EventHandler
     public void onLeave(PlayerQuitEvent e) {
-        //todo: get rp by player
-        //todo: set disconnected state if playing
-        //todo: move inv to chest and clear
-        //todo: set player null
-        //todo: rm from squad if !playing
-        //todo: messages
+        players.getPlayerByName(e.getPlayer().getName()).disconnect();
+        //todo Messages
+        //todo: check if alive -> royale event req
     }
 
 }

@@ -1,4 +1,7 @@
 ﻿MCRoyale changelog
+v0.3
+- Отрефакторен код, улучшена архитектура плагина
+
 v0.2.1.2
 - Добавлены параметры OutsideZoneBreakingEnable и OutsideZoneBreakingDistance
 - Добавлены оповещения для сквадов, если был автобалансером был присоединен игрок

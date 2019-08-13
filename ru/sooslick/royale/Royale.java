@@ -12,6 +12,8 @@ public class Royale extends JavaPlugin {
     public static RoyalePlayerList players;
     public static RoyaleSquadList squads;
 
+    public static GameState gameState;
+
     //private boolean datafolderexists? todo
 
     @Override
@@ -54,6 +56,7 @@ public class Royale extends JavaPlugin {
         //init player holders
         players = new RoyalePlayerList();
         squads = new RoyaleSquadList();
+        gameState = GameState.LOBBY;
 
         //init EventHandler: register events
         getServer().getPluginManager().registerEvents(new EventProcessor(this), this);

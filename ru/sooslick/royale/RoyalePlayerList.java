@@ -11,4 +11,17 @@ public class RoyalePlayerList {
         pls = new ArrayList<>();
     }
 
+    public void add(RoyalePlayer rp) {
+        pls.add(rp);
+    }
+
+    public RoyalePlayer getPlayerByName(String name) {
+        for (RoyalePlayer rp : pls) {
+            if (rp.getName().equals(name)) {
+                return rp;
+            }
+        }
+        return null;
+    }
+
 }

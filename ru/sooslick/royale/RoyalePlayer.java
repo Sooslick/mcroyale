@@ -2,6 +2,7 @@ package ru.sooslick.royale;
 
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
 public class RoyalePlayer {
@@ -14,6 +15,7 @@ public class RoyalePlayer {
     //current game fields
     private boolean alive;
     private int alertTimer;
+    private Location savedPosition;
 
     //server stats fields
     private int gamesTotal;
@@ -41,8 +43,17 @@ public class RoyalePlayer {
         player.setExp(0);
         player.setFoodLevel(20);
         player.setHealth(20);
-        clearInventory();    //todo impl
+        clearInventory();
         player.setGameMode(GameMode.SPECTATOR);
+        alive = false;
+        alertTimer = 0;
+    }
+
+    public void disconnect() {
+        savedPosition = player.getLocation();
+        //todo if GAME state -> invtochest trigger, game events trigger
+        //todo write player state to yml-file
+        player = null;
     }
 
     public void clearInventory() {
@@ -55,6 +66,10 @@ public class RoyalePlayer {
 
     public Player getPlayer() {
         return player;
+    }
+
+    public void setPlayer(Player p) {
+        player = p;
     }
 
     public String getName() {
