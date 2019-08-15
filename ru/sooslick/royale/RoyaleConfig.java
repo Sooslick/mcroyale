@@ -22,67 +22,67 @@ public class RoyaleConfig {
     private static Logger LOG;
     private static String YML;
 
-    public static int zoneStartSize;
-    public static int zonePreStartSize;
-    public static int zoneStartTimer;
-    public static int zoneStartDelay;
-    public static int zoneEndSize;
-    public static double zoneEndSpeed;
-    public static double zoneNewSizeMultiplier;
-    public static int zoneProcessorPeriod;
-    public static double zoneWaitTimerMultiplier;
-    public static double zoneShrinkTimerMultiplier;
-    public static boolean zoneCenterOffsetEnabled;
-    public static double zoneStartDamage;
-    public static double zoneDamageMultiplier;
-    public static int zoneLavaFlowSize;
-    public static int lavaFlowPeriod;
-    public static boolean redzoneEnabled;
-    public static int redzoneRadius;
-    public static int redzonePeriod;
-    public static int redzoneDuration;
-    public static int redzoneDensity;
-    public static int redzoneStartDelay;
-    public static int redzoneDelayMin;
-    public static int redzoneDelayMax;
-    public static int redzoneDisableSize;
-    public static boolean monstersEnabled;
-    public static int monstersStartDelay;
-    public static HashMap<EntityType, Double> monstersSpawnChances;
-    public static boolean elytraStartEnabled;
-    public static int elytraFallHeight;
-    public static int lobbyMinVotestarters;
-    public static double lobbyMinVotestartersPercent;
-    public static boolean lobbyPostGameCommandEnabled;
-    public static String lobbyPostGameCommand;
-    public static int lobbyPostGameCommandDelay;
-    public static int squadMaxMembers;
-    public static Team.OptionStatus squadNametagVisiblity;
-    public static boolean squadFriendlyFireEnabled;
-    public static boolean squadAutoBalancingEnabled;
-    public static boolean gameOutsideBreakingEnabled;
-    public static double gameOutsideBreakingMaxDistance;
-    public static int gameOutsideBreakingPeriod;
-    public static boolean gameGiveZoneMap;
-    public static boolean gameContainerTrackingEnabled;
-    public static Material gameContainerReplacmentMaterial;
-    public static boolean airdropEnabled;
-    public static boolean airdropAlertEnabled;
-    public static int airdropStartDelay;
-    public static int airdropDelayMin;
-    public static int airdropDelayMax;
-    public static int airdropDisableSize;
-    public static HashMap<Material, Integer> airdropItems;
-    public static double airdropEnchantedItemChance;
-    public static HashMap<Material, HashMap<Enchantment, Integer>> airdropEnchantments;
-    public static HashMap<PotionType, Integer> airdropPotions;
-    public static HashMap<Material, Integer> airdropStackableItems;
+    public int zoneStartSize;
+    public int zonePreStartSize;
+    public int zoneStartTimer;
+    public int zoneStartDelay;
+    public int zoneEndSize;
+    public double zoneEndSpeed;
+    public double zoneNewSizeMultiplier;
+    public int zoneProcessorPeriod;
+    public double zoneWaitTimerMultiplier;
+    public double zoneShrinkTimerMultiplier;
+    public boolean zoneCenterOffsetEnabled;
+    public double zoneStartDamage;
+    public double zoneDamageMultiplier;
+    public int zoneLavaFlowSize;
+    public int lavaFlowPeriod;
+    public boolean redzoneEnabled;
+    public int redzoneRadius;
+    public int redzonePeriod;
+    public int redzoneDuration;
+    public int redzoneDensity;
+    public int redzoneStartDelay;
+    public int redzoneDelayMin;
+    public int redzoneDelayMax;
+    public int redzoneDisableSize;
+    public boolean monstersEnabled;
+    public int monstersStartDelay;
+    public HashMap<EntityType, Double> monstersSpawnChances;
+    public boolean elytraStartEnabled;
+    public int elytraFallHeight;
+    public int lobbyMinVotestarters;
+    public double lobbyMinVotestartersPercent;
+    public boolean lobbyPostGameCommandEnabled;
+    public String lobbyPostGameCommand;
+    public int lobbyPostGameCommandDelay;
+    public int squadMaxMembers;
+    public Team.OptionStatus squadNametagVisiblity;
+    public boolean squadFriendlyFireEnabled;
+    public boolean squadAutoBalancingEnabled;
+    public boolean gameOutsideBreakingEnabled;
+    public double gameOutsideBreakingMaxDistance;
+    public int gameOutsideBreakingPeriod;
+    public boolean gameGiveZoneMap;
+    public boolean gameContainerTrackingEnabled;
+    public Material gameContainerReplacmentMaterial;
+    public boolean airdropEnabled;
+    public boolean airdropAlertEnabled;
+    public int airdropStartDelay;
+    public int airdropDelayMin;
+    public int airdropDelayMax;
+    public int airdropDisableSize;
+    public HashMap<Material, Integer> airdropItems;
+    public double airdropEnchantedItemChance;
+    public HashMap<Material, HashMap<Enchantment, Integer>> airdropEnchantments;
+    public HashMap<PotionType, Integer> airdropPotions;
+    public HashMap<Material, Integer> airdropStackableItems;
 
     public RoyaleConfig() {
         setDefaults();
     }
 
-    public static void setDefaults() {
+    public void setDefaults() {
         zoneStartSize = 2048;
         zonePreStartSize = 2055;
         zoneStartTimer = 300;
@@ -140,7 +140,7 @@ public class RoyaleConfig {
         airdropStackableItems = getDefaultStackables();
     }
 
-    public static HashMap<EntityType, Double> getDefaultMonsters() {
+    private HashMap<EntityType, Double> getDefaultMonsters() {
         HashMap<EntityType, Double> hm = new HashMap<>();
         hm.put(EntityType.ZOMBIE, 0.5);
         hm.put(EntityType.SKELETON, 0.5);
@@ -149,7 +149,7 @@ public class RoyaleConfig {
         return hm;
     }
 
-    public static HashMap<Material, Integer> getDefaultAirdropItems() {
+    private HashMap<Material, Integer> getDefaultAirdropItems() {
         HashMap<Material, Integer> hm = new HashMap<>();
         hm.put(Material.AIR, 200);
         hm.put(Material.COBBLESTONE, 100);
@@ -160,7 +160,7 @@ public class RoyaleConfig {
         return hm;
     }
 
-    public static HashMap<Material, HashMap<Enchantment, Integer>> getDefaultEnchantments() {
+    private HashMap<Material, HashMap<Enchantment, Integer>> getDefaultEnchantments() {
         HashMap<Material, HashMap<Enchantment, Integer>> hmm = new HashMap<>();
         HashMap<Enchantment, Integer> hme = new HashMap<>();
         hme.put(Enchantment.ARROW_DAMAGE, 3);
@@ -173,7 +173,7 @@ public class RoyaleConfig {
         return hmm;
     }
 
-    public static HashMap<PotionType, Integer> getDefaultPotions() {
+    private HashMap<PotionType, Integer> getDefaultPotions() {
         HashMap<PotionType, Integer> hm = new HashMap<>();
         hm.put(PotionType.INSTANT_HEAL, 10);
         hm.put(PotionType.SPEED, 8);
@@ -181,14 +181,14 @@ public class RoyaleConfig {
         return hm;
     }
 
-    public static HashMap<Material, Integer> getDefaultStackables() {
+    private HashMap<Material, Integer> getDefaultStackables() {
         HashMap<Material, Integer> hm = new HashMap<>();
         hm.put(Material.COBBLESTONE, 64);
         hm.put(Material.ARROW, 16);
         return hm;
     }
 
-    public static void readConfig(FileConfiguration cfg) {
+    public void readConfig(FileConfiguration cfg) {
         cfgGetInt(cfg, "zoneStartSize", 2048, (val, def) -> {
             if (val < 1 || val > 4096) return def;
             else return val;
@@ -458,7 +458,7 @@ public class RoyaleConfig {
         // - etc etc etc...
     }
 
-    public static boolean saveConfig(FileConfiguration cfg) {
+    public boolean saveConfig(FileConfiguration cfg) {
         cfg.set("zoneStartSize", zoneStartSize);
         cfg.set("zonePreStartSize", zonePreStartSize);
         cfg.set("zoneStartTimer", zoneStartTimer);
@@ -527,7 +527,7 @@ public class RoyaleConfig {
         }
     }
 
-    public static <T, V> void saveSection(ConfigurationSection cfg, String section, HashMap<T, V> values) {
+    private <T, V> void saveSection(ConfigurationSection cfg, String section, HashMap<T, V> values) {
         ConfigurationSection cs = cfg.createSection(section);
         for (T key : values.keySet()) {
             cs.set(key.toString(), values.get(key));
@@ -544,7 +544,7 @@ public class RoyaleConfig {
         YML = file;
     }
 
-    private static void cfgGetInt(FileConfiguration cfg, String field, int dflt, IntValidator v) {
+    private void cfgGetInt(FileConfiguration cfg, String field, int dflt, IntValidator v) {
         try {
             boolean useSuffix = false;
             Field rcf = RoyaleConfig.class.getDeclaredField(field);
@@ -564,7 +564,7 @@ public class RoyaleConfig {
         }
     }
 
-    private static void cfgGetDouble(FileConfiguration cfg, String field, double dflt, DoubleValidator v) {
+    private void cfgGetDouble(FileConfiguration cfg, String field, double dflt, DoubleValidator v) {
         try {
             boolean useSuffix = false;
             Field rcf = RoyaleConfig.class.getDeclaredField(field);
@@ -584,7 +584,7 @@ public class RoyaleConfig {
         }
     }
 
-    private static void cfgGetBoolean(FileConfiguration cfg, String field, boolean dflt) {
+    private void cfgGetBoolean(FileConfiguration cfg, String field, boolean dflt) {
         try {
             Field rcf = RoyaleConfig.class.getDeclaredField(field);
             Field rmf = RoyaleMessages.class.getDeclaredField(field);
@@ -614,5 +614,10 @@ public class RoyaleConfig {
         int validate(int value, int dflt);
 
     }
+
+    //todo: view param method
+    //todo: setparam method
+    //todo: viewparams method
+    //todo: yml comments
 
 }

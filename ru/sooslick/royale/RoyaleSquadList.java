@@ -26,7 +26,7 @@ public class RoyaleSquadList {
     public int getAlivePlayers() {
         int alives = 0;
         for (RoyaleSquad s : squads) {
-            alives+= s.getAlivesCount();
+            alives += s.getAlivesCount();
         }
         return alives;
     }
@@ -38,7 +38,7 @@ public class RoyaleSquadList {
     public int getPlayersCount() {
         int p = 0;
         for (RoyaleSquad s : squads) {
-            p+= s.getPlayersCount();
+            p += s.getPlayersCount();
         }
         return p;
     }
@@ -56,19 +56,55 @@ public class RoyaleSquadList {
     }
 
     public void invitePlayer(RoyaleSquad s, RoyalePlayer p) {
-        //todo check and prevent duplicates! req get invite by pl and sq method
+        if (getInvite(p,s) != null) {
+            //todo error message
+            return;
+        }
         invites.add(new SquadInvite(p, s));
     }
 
-    //todo: invite accept
+    public void inviteAccept(SquadInvite inv) {
+        inv.getSquad().addPlayer(inv.getPlayer());
+        inviteTimeout(inv);
+        //todo messages
+    }
 
-    //todo: invite die
+    public void inviteTimeout(SquadInvite inv) {
+        invites.remove(inv);
+        //todo messages to player
+        //todo messages to console
+    }
 
-    //todo: invite ticker
+    public void inviteTick() {
+        for (SquadInvite i : invites) {
+            i.tick();
+            if (i.getLifetime() <= 0) {
+                inviteTimeout(i);
+            }
+        }
+    }
 
-    //todo: getInvite byPlayer
+    public SquadInvite getInviteByPlayer(RoyalePlayer p) throws SquadInviteException {
+        ArrayList<SquadInvite> invs = getInvitesByPlayer(p);
+        switch (invs.size()) {
+            case 0:
+                return null;
+            case 1:
+                return invs.get(0);
+            default:
+                throw new SquadInviteException(RoyaleMessages.squadMultipleInvites);
+                //todo: exception: StringFormat - squadlist
+        }
+    }
 
-    //todo: getInvite byPlayer and Squad
+    public SquadInvite getInvite(RoyalePlayer p, RoyaleSquad s) {
+        for (SquadInvite i : invites) {
+            if (i.getPlayer().equals(p) && i.getSquad().equals(s)) {
+                return i;
+            }
+        }
+        return null;
+    }
 
     public ArrayList<SquadInvite> getInvites() {
         return invites;
@@ -87,5 +123,7 @@ public class RoyaleSquadList {
     public void clearInvites() {
         invites.clear();
     }
+
+    //todo: request feature
 
 }

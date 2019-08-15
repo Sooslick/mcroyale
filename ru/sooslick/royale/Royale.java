@@ -8,6 +8,7 @@ import java.util.logging.Logger;
 public class Royale extends JavaPlugin {
 
     public static Logger LOG;
+    public static RoyaleConfig CFG;
     //public static EventHandler eventHandler;
     public static RoyalePlayerList players;
     public static RoyaleSquadList squads;
@@ -36,22 +37,22 @@ public class Royale extends JavaPlugin {
 
         //init config file
         //todo: if datafolder exists - prevent exception
+        CFG = new RoyaleConfig();
         try {
             if (new File(getDataFolder().toString() + File.separator + "plugin.yml" ).exists()) {
-                RoyaleConfig.readConfig(this.getConfig());
+                CFG.readConfig(getConfig());
+                LOG.info(RoyaleMessages.prefix + RoyaleMessages.readConfig);
             }
             else {
                 this.saveDefaultConfig();
-                RoyaleConfig.setDefaults();
+                CFG.setDefaults();
                 LOG.info(RoyaleMessages.prefix + RoyaleMessages.createConfig);
             }
         } catch (Exception ex) {
-            RoyaleConfig.setDefaults();
+            CFG.setDefaults();
             LOG.warning(RoyaleMessages.prefix + RoyaleMessages.createConfigException);
             LOG.warning("[Royale] " + ex);
         }
-
-        //cfg blah blah blah
 
         //init player holders
         players = new RoyalePlayerList();
@@ -61,5 +62,12 @@ public class Royale extends JavaPlugin {
         //init EventHandler: register events
         getServer().getPluginManager().registerEvents(new EventProcessor(this), this);
     }
+
+    @Override
+    public void onDisable() {
+        CFG.saveConfig(getConfig());
+    }
+
+    //todo: test, test and test all config manipulations. I still don't understand, HOW this works!
 
 }

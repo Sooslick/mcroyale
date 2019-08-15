@@ -82,4 +82,6 @@ public class RoyaleSquad {
             rp.getPlayer().sendMessage(str.toString());
         }
     }
+
+    //todo: messages
 }

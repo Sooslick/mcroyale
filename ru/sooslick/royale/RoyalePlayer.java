@@ -99,4 +99,8 @@ public class RoyalePlayer {
     public void setAlertTimer(int t) {
         alertTimer = t;
     }
+
+    //todo: read player stats from yml
+    //todo: save player stats to yml
+
 }
