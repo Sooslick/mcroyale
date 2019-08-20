@@ -7,9 +7,9 @@ import java.util.logging.Logger;
 
 public class Royale extends JavaPlugin {
 
+    public static Royale R;
     public static Logger LOG;
     public static RoyaleConfig CFG;
-    //public static EventHandler eventHandler;
     public static RoyalePlayerList players;
     public static RoyaleSquadList squads;
 
@@ -19,6 +19,7 @@ public class Royale extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        R = this;                                                       //todo: replace all Royale parameters to static import
         LOG = getServer().getLogger();
         LOG.info(RoyaleMessages.prefix + RoyaleMessages.onEnable);      //todo: logger util to prevent concats at every string
         RoyaleConfig.setLogger(LOG);
@@ -59,8 +60,13 @@ public class Royale extends JavaPlugin {
         squads = new RoyaleSquadList();
         gameState = GameState.LOBBY;
 
-        //init EventHandler: register events
+        //register events
         getServer().getPluginManager().registerEvents(new EventProcessor(this), this);
+        CommandProcessor cp = new CommandProcessor();
+        getCommand("royale").setExecutor(cp);
+        getCommand("squad").setExecutor(cp);
+        getCommand("zone").setExecutor(cp);
+        getCommand("votestart").setExecutor(cp);
     }
 
     @Override

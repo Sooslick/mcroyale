@@ -286,7 +286,7 @@ public class royale extends JavaPlugin implements CommandExecutor, Listener
     public Location RandomLocation(int Max)
     {
         Location l = new Location(w, 0, 64, 0);
-        for (int i = 0; i < 100; i++) {
+        for (int i = 0; i < 100; i++) {                     //todo Max Attempts
             int x = (int) (Math.random() * Max - Max/2);
             l.setX(x);
             int z = (int) (Math.random() * Max - Max/2);

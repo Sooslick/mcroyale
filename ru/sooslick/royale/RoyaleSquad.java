@@ -10,13 +10,14 @@ public class RoyaleSquad {
 
     //static royale... todo
     static int maxMembers;
-    static Scoreboard sb;
+    static Scoreboard sb;   //todo move to SquadList or Royale, static import
 
     private String name;
     private RoyalePlayer leader;
     private LinkedList<RoyalePlayer> playerList;
     private ItemStack teamMap;
-    private boolean accessibility;
+    private boolean allowRequest;
+    private boolean allowAutobalance;
     private Team team;
 
     public RoyaleSquad(String name, RoyalePlayer leader) {
@@ -24,7 +25,8 @@ public class RoyaleSquad {
         this.leader = leader;
         playerList = new LinkedList<>();
         playerList.add(leader);
-        accessibility = true;
+        allowRequest = true;
+        allowAutobalance = true;
         team = sb.registerNewTeam(name);
     }
 
@@ -72,8 +74,17 @@ public class RoyaleSquad {
         return a;
     }
 
-    public void setAccessibility(boolean b) {
-        accessibility = b;
+    public void setRestriction(String param, boolean b) {
+        switch (param) {
+            case "request":
+                allowRequest = b;
+                break;
+            case "balance":
+                allowAutobalance = b;
+                break;
+            default:
+                //todo say gav tяф
+        }
     }
 
     public void sendMessage(RoyalePlayer p, String msg) {

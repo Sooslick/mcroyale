@@ -3,14 +3,24 @@ package ru.sooslick.royale;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
+import org.bukkit.configuration.InvalidConfigurationException;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+
+import static ru.sooslick.royale.Royale.R;
+
 public class RoyalePlayer {
+
+    private static final String extension = ".yml";
 
     //general royale fields
     private Player player;
     private String name;
-    private RoyaleSquad squad; //todo + invite
+    private RoyaleSquad squad;
 
     //current game fields
     private boolean alive;
@@ -20,6 +30,10 @@ public class RoyalePlayer {
     //server stats fields
     private int gamesTotal;
     private int gamesWon;
+    private int kills;
+    private int deadbyPlayer;
+    private int deadbyMob;
+    private int deadbyEnv;
 
     public RoyalePlayer(Player p) {
         player = p;
@@ -100,7 +114,38 @@ public class RoyalePlayer {
         alertTimer = t;
     }
 
-    //todo: read player stats from yml
-    //todo: save player stats to yml
+    public void readStat() {
+        YamlConfiguration f = new YamlConfiguration();
+        try {
+            f.load(R.getDataFolder() + File.separator + name + extension);
+            gamesTotal = f.getInt("gamesTotal", 0);
+            gamesWon = f.getInt("gamesWon", 0);
+            kills = f.getInt("kills", 0);
+            deadbyPlayer = f.getInt("deadbyPlayer", 0);
+            deadbyMob = f.getInt("deadbyMob", 0);
+            deadbyEnv = f.getInt("deadbyEnv", 0);
+        } catch (FileNotFoundException e) {
+            //todo Royale Messages
+        } catch (IOException e) {
+            //todo
+        } catch (InvalidConfigurationException e) {
+            //todo гав тяф
+        }
+    }
+
+    public void saveStat() {
+        YamlConfiguration f = new YamlConfiguration();
+        f.set("gamesTotal", gamesTotal);
+        f.set("gamesWon", gamesWon);
+        f.set("kills", kills);
+        f.set("deadbyPlayer", deadbyPlayer);
+        f.set("deadbyMob", deadbyMob);
+        f.set("deadbyEnv", deadbyEnv);
+        try {
+            f.save(R.getDataFolder() + File.separator + name + extension);
+        } catch (IOException e) {
+            //todo gaf tяf message
+        }
+    }
 
 }
