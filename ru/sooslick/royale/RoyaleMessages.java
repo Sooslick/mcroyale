@@ -73,4 +73,5 @@ public class RoyaleMessages {
 
     public static final String suffixNone = "";
     public static final String suffixRed = "§4";
+    public static final String suffixYellow = "§e";
 }

@@ -3,56 +3,55 @@ package ru.sooslick.royale;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
-import java.util.logging.Logger;
+
+import static ru.sooslick.royale.RoyaleUtil.*;
 
 public class Royale extends JavaPlugin {
 
     public static Royale R;
-    public static Logger LOG;
     public static RoyaleConfig CFG;
     public static RoyalePlayerList players;
     public static RoyaleSquadList squads;
 
     public static GameState gameState;
 
-    //private boolean datafolderexists? todo
-
     @Override
     public void onEnable() {
         R = this;                                                       //todo: replace all Royale parameters to static import
         LOG = getServer().getLogger();
-        LOG.info(RoyaleMessages.prefix + RoyaleMessages.onEnable);      //todo: logger util to prevent concats at every string
-        RoyaleConfig.setLogger(LOG);
+        logInfo(RoyaleMessages.prefix + RoyaleMessages.onEnable);
+        RoyaleConfig.setLogger(LOG);                                    //todo: import static util
 
         //init config folder
+        boolean dataFolderExists = false;
         try {
             if (!getDataFolder().exists()) {
-                getDataFolder().mkdir();        //todo: If mkdir returns success or fail replace trycatch
-                LOG.info(RoyaleMessages.prefix + RoyaleMessages.createDataFolder);
+                dataFolderExists = getDataFolder().mkdir();
+                logInfo(RoyaleMessages.createDataFolder);
             }
         } catch (Exception ex) {
-            LOG.warning(RoyaleMessages.prefix + RoyaleMessages.dataFolderException);
-            LOG.warning(ex.getMessage());
+            logWarning(RoyaleMessages.dataFolderException);
         }
         RoyaleConfig.setConfigFile(getDataFolder().toString() + File.separator + "plugin.yml");
 
         //init config file
-        //todo: if datafolder exists - prevent exception
         CFG = new RoyaleConfig();
         try {
+            if (!dataFolderExists) {
+                throw new Exception();          //todo replace this
+            }
             if (new File(getDataFolder().toString() + File.separator + "plugin.yml" ).exists()) {
                 CFG.readConfig(getConfig());
-                LOG.info(RoyaleMessages.prefix + RoyaleMessages.readConfig);
+                logInfo(RoyaleMessages.readConfig);
             }
             else {
                 this.saveDefaultConfig();
                 CFG.setDefaults();
-                LOG.info(RoyaleMessages.prefix + RoyaleMessages.createConfig);
+                logInfo(RoyaleMessages.createConfig);
             }
         } catch (Exception ex) {
             CFG.setDefaults();
-            LOG.warning(RoyaleMessages.prefix + RoyaleMessages.createConfigException);
-            LOG.warning("[Royale] " + ex);
+            logWarning(RoyaleMessages.createConfigException);
         }
 
         //init player holders

@@ -19,6 +19,8 @@ import static ru.sooslick.royale.RoyaleMessages.suffixRed;
 
 public class RoyaleConfig {
 
+    //todo: import static royaleutil - logger
+
     private static Logger LOG;
     private static String YML;
 
