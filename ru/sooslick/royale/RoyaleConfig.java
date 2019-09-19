@@ -12,16 +12,18 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Set;
-import java.util.logging.Logger;
 
 import static ru.sooslick.royale.RoyaleMessages.suffixNone;
 import static ru.sooslick.royale.RoyaleMessages.suffixRed;
+import static ru.sooslick.royale.RoyaleUtil.logInfo;
+import static ru.sooslick.royale.RoyaleUtil.logWarning;
 
 public class RoyaleConfig {
 
     //todo: import static royaleutil - logger
+    //todo: save validator lambdas to predicate
+    //todo read cfg silent param
 
-    private static Logger LOG;
     private static String YML;
 
     public int zoneStartSize;
@@ -265,14 +267,8 @@ public class RoyaleConfig {
             if (val < 1 || val > redzoneRadius) return def;
             else return val;
         });
-        cfgGetInt(cfg, "redzoneStartDelay", 350, (val, def) -> {
-            if (val < 0) return def;
-            else return val;
-        });
-        cfgGetInt(cfg, "redzoneDelayMin", 60, (val, def) -> {
-            if (val < 0) return def;
-            else return val;
-        });
+        cfgGetInt(cfg, "redzoneStartDelay", 350, lesserThanZeroIntValidator);
+        cfgGetInt(cfg, "redzoneDelayMin", 60, lesserThanZeroIntValidator);
         cfgGetInt(cfg, "redzoneDelayMax", 120, (val, def) -> {
             if (val < redzoneDelayMin) return def;
             else return val;
@@ -282,10 +278,7 @@ public class RoyaleConfig {
             else return val;
         });
         cfgGetBoolean(cfg, "monstersEnabled", true);
-        cfgGetInt(cfg, "monstersStartDelay", 310, (val, def) -> {
-            if (val < 0) return def;
-            else return val;
-        });
+        cfgGetInt(cfg, "monstersStartDelay", 310, lesserThanZeroIntValidator);
         cfgGetBoolean(cfg, "elytraStartEnabled", true);
         cfgGetInt(cfg, "elytraFallHeight", 1600, (val, def) -> {
             if (val < 256) return def;
@@ -300,14 +293,8 @@ public class RoyaleConfig {
             else return val;
         });
         cfgGetBoolean(cfg, "lobbyPostGameCommandEnabled", true);
-        cfgGetInt(cfg, "lobbyPostGameCommandDelay", 60, (val, def) -> {
-            if (val < 0) return def;
-            else return val;
-        });
-        cfgGetInt(cfg, "squadMaxMembers", 4, (val, def) -> {
-            if (val < 0) return def;
-            else return val;
-        });
+        cfgGetInt(cfg, "lobbyPostGameCommandDelay", 60, lesserThanZeroIntValidator);
+        cfgGetInt(cfg, "squadMaxMembers", 4, lesserThanZeroIntValidator);
         cfgGetBoolean(cfg, "squadFriendlyFireEnabled", true);
         cfgGetBoolean(cfg, "squadAutoBalancingEnabled", true);
         cfgGetBoolean(cfg, "gameOutsideBreakingEnabled", true);
@@ -323,14 +310,8 @@ public class RoyaleConfig {
         cfgGetBoolean(cfg, "gameContainerTrackingEnabled", true);
         cfgGetBoolean(cfg, "airdropEnabled", true);
         cfgGetBoolean(cfg, "airdropAlertEnabled", true);
-        cfgGetInt(cfg, "airdropStartDelay", 250, (val, def) -> {
-            if (val < 0) return def;
-            else return val;
-        });
-        cfgGetInt(cfg, "airdropDelayMin", 150, (val, def) -> {
-            if (val < 0) return def;
-            else return val;
-        });
+        cfgGetInt(cfg, "airdropStartDelay", 250, lesserThanZeroIntValidator);
+        cfgGetInt(cfg, "airdropDelayMin", 150, lesserThanZeroIntValidator);
         cfgGetInt(cfg, "airdropDelayMax", 250, (val, def) -> {
             if (val < airdropDelayMin) return def;
             else return val;
@@ -354,10 +335,10 @@ public class RoyaleConfig {
             try {
                 monstersSpawnChances.put(EntityType.valueOf(s), cs.getDouble(s));
             } catch (IllegalArgumentException e) {
-                LOG.warning(suffixRed + RoyaleMessages.prefix + String.format(RoyaleMessages.noSuchEnum, s));
+                logWarning(String.format(RoyaleMessages.noSuchEnum, s));
             }
         }
-        LOG.info(RoyaleMessages.prefix + RoyaleMessages.monstersSpawnChances);
+        logInfo(RoyaleMessages.monstersSpawnChances);
 
         //todo: cfgGetString method
         String suffix = suffixNone;
@@ -366,7 +347,7 @@ public class RoyaleConfig {
             lobbyPostGameCommand = "say post-game event triggered!";
             suffix = suffixRed;
         }
-        LOG.info(RoyaleMessages.prefix + suffix + String.format(RoyaleMessages.lobbyPostGameCommand, lobbyPostGameCommand));
+        logInfo(suffix + String.format(RoyaleMessages.lobbyPostGameCommand, lobbyPostGameCommand));
         suffix = suffixNone;
 
         try {
@@ -375,7 +356,7 @@ public class RoyaleConfig {
             squadNametagVisiblity = Team.OptionStatus.FOR_OWN_TEAM;
             suffix = suffixRed;
         }
-        LOG.info(RoyaleMessages.prefix + suffix + String.format(RoyaleMessages.squadNametagVisiblity, squadNametagVisiblity));
+        logInfo(suffix + String.format(RoyaleMessages.squadNametagVisiblity, squadNametagVisiblity));
         suffix = suffixNone;
 
         try {
@@ -384,8 +365,7 @@ public class RoyaleConfig {
             gameContainerReplacmentMaterial = Material.MOSSY_COBBLESTONE;
             suffix = suffixRed;
         }
-        LOG.info(RoyaleMessages.prefix + suffix + String.format(RoyaleMessages.gameContainerReplacmentMaterial, gameContainerReplacmentMaterial));
-        suffix = suffixNone;
+        logInfo(suffix + String.format(RoyaleMessages.gameContainerReplacmentMaterial, gameContainerReplacmentMaterial));
 
         //airdropItems configurationSection
         cs = cfg.getConfigurationSection("airdropItems");
@@ -395,10 +375,10 @@ public class RoyaleConfig {
             try {
                 airdropItems.put(Material.valueOf(s), cs.getInt(s));
             } catch (IllegalArgumentException e) {
-                LOG.warning(suffixRed + RoyaleMessages.prefix + String.format(RoyaleMessages.noSuchEnum, s));
+                logWarning(String.format(RoyaleMessages.noSuchEnum, s));
             }
         }
-        LOG.info(RoyaleMessages.prefix + RoyaleMessages.airdropItems);
+        logInfo(RoyaleMessages.airdropItems);
 
         //airdropEnchantments configurationSection
         //todo variables names - pizdec
@@ -412,16 +392,16 @@ public class RoyaleConfig {
                 try {
                     hm.put(Enchantment.getByName(enc), ae.getInt(enc));
                 } catch (Exception e) {
-                    LOG.warning(suffixRed + RoyaleMessages.prefix + String.format(RoyaleMessages.noSuchEnum, s));
+                    logWarning(String.format(RoyaleMessages.noSuchEnum, s));
                 }
             }
             try {
                 airdropEnchantments.put(Material.valueOf(s), hm);
             } catch (IllegalArgumentException e) {
-                LOG.warning(suffixRed + RoyaleMessages.prefix + String.format(RoyaleMessages.noSuchEnum, s));
+                logWarning(String.format(RoyaleMessages.noSuchEnum, s));
             }
         }
-        LOG.info(RoyaleMessages.prefix + RoyaleMessages.airdropEnchantments);
+        logInfo(RoyaleMessages.airdropEnchantments);
 
         //airdropPotions configurationSection
         cs = cfg.getConfigurationSection("airdropPotions");
@@ -431,10 +411,10 @@ public class RoyaleConfig {
             try {
                 airdropPotions.put(PotionType.valueOf(s), cs.getInt(s));
             } catch (IllegalArgumentException e) {
-                LOG.warning(suffixRed + RoyaleMessages.prefix + String.format(RoyaleMessages.noSuchEnum, s));
+                logWarning(String.format(RoyaleMessages.noSuchEnum, s));
             }
         }
-        LOG.info(RoyaleMessages.prefix + RoyaleMessages.airdropPotions);
+        logInfo(RoyaleMessages.airdropPotions);
 
         //airdropStackableItems configurationSection
         cs = cfg.getConfigurationSection("airdropStackableItems");
@@ -444,10 +424,10 @@ public class RoyaleConfig {
             try {
                 airdropStackableItems.put(Material.valueOf(s), cs.getInt(s));
             } catch (IllegalArgumentException e) {
-                LOG.warning(suffixRed + RoyaleMessages.prefix + String.format(RoyaleMessages.noSuchEnum, s));
+                logWarning(String.format(RoyaleMessages.noSuchEnum, s));
             }
         }
-        LOG.info(RoyaleMessages.prefix + RoyaleMessages.airdropStackableItems);
+        logInfo(RoyaleMessages.airdropStackableItems);
 
         //todo: refactor if possible
         //todo: comment config fields in yml
@@ -524,7 +504,7 @@ public class RoyaleConfig {
             cfg.save(YML);
             return true;
         } catch (IOException e) {
-            LOG.warning(suffixRed + RoyaleMessages.prefix + RoyaleMessages.writeConfigException);
+            logWarning(RoyaleMessages.writeConfigException);
             return false;
         }
     }
@@ -536,10 +516,6 @@ public class RoyaleConfig {
         }
         //todo: test method
         //todo: if V is conf section? Impl recursive method
-    }
-
-    public static void setLogger(Logger l) {
-        LOG = l;
     }
 
     public static void setConfigFile(String file) {
@@ -557,12 +533,12 @@ public class RoyaleConfig {
                 useSuffix = true;
             }
             rcf.set(RoyaleConfig.class, fixed);
-            LOG.info(RoyaleMessages.prefix + (useSuffix ? suffixRed : suffixNone)
+            logInfo((useSuffix ? suffixRed : suffixNone)
                     + String.format((String) rmf.get(RoyaleMessages.class), (int) rcf.get(RoyaleConfig.class)));
         } catch (NoSuchFieldException e) {
-            LOG.warning(suffixRed + RoyaleMessages.prefix + String.format(RoyaleMessages.noSuchConfigField, field));
+            logWarning(String.format(RoyaleMessages.noSuchConfigField, field));
         } catch (IllegalAccessException e) {
-            LOG.warning(suffixRed + RoyaleMessages.prefix + String.format(RoyaleMessages.cantWriteConfigField, field));
+            logWarning(String.format(RoyaleMessages.cantWriteConfigField, field));
         }
     }
 
@@ -577,12 +553,12 @@ public class RoyaleConfig {
                 useSuffix = true;
             }
             rcf.set(RoyaleConfig.class, fixed);
-            LOG.info(RoyaleMessages.prefix + (useSuffix ? suffixRed : suffixNone)
+            logInfo((useSuffix ? suffixRed : suffixNone)
                     + String.format((String) rmf.get(RoyaleMessages.class), (double) rcf.get(RoyaleConfig.class)));
         } catch (NoSuchFieldException e) {
-            LOG.warning(suffixRed + RoyaleMessages.prefix + String.format(RoyaleMessages.noSuchConfigField, field));
+            logWarning(String.format(RoyaleMessages.noSuchConfigField, field));
         } catch (IllegalAccessException e) {
-            LOG.warning(suffixRed + RoyaleMessages.prefix + String.format(RoyaleMessages.cantWriteConfigField, field));
+            logWarning(String.format(RoyaleMessages.cantWriteConfigField, field));
         }
     }
 
@@ -591,11 +567,11 @@ public class RoyaleConfig {
             Field rcf = RoyaleConfig.class.getDeclaredField(field);
             Field rmf = RoyaleMessages.class.getDeclaredField(field);
             rcf.set(RoyaleConfig.class, cfg.getBoolean(field, dflt));
-            LOG.info(RoyaleMessages.prefix + String.format((String) rmf.get(RoyaleMessages.class), (boolean) rcf.get(RoyaleConfig.class)));
+            logInfo(String.format((String) rmf.get(RoyaleMessages.class), (boolean) rcf.get(RoyaleConfig.class)));
         } catch (NoSuchFieldException e) {
-            LOG.warning(suffixRed + RoyaleMessages.prefix + String.format(RoyaleMessages.noSuchConfigField, field));
+            logWarning(String.format(RoyaleMessages.noSuchConfigField, field));
         } catch (IllegalAccessException e) {
-            LOG.warning(suffixRed + RoyaleMessages.prefix + String.format(RoyaleMessages.cantWriteConfigField, field));
+            logWarning(String.format(RoyaleMessages.cantWriteConfigField, field));
         }
 
     }
@@ -605,17 +581,17 @@ public class RoyaleConfig {
 
     @FunctionalInterface
     public interface DoubleValidator {
-
         double validate(double value, double dflt);
-
     }
 
     @FunctionalInterface
     public interface IntValidator {
-
         int validate(int value, int dflt);
-
     }
+
+    private IntValidator lesserThanZeroIntValidator = (val, def) -> (val < 0) ? def : val;
+
+    //todo pairs field <-> validator
 
     //todo: view param method
     //todo: setparam method

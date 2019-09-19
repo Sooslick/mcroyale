@@ -4,7 +4,8 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
 
-import static ru.sooslick.royale.RoyaleUtil.*;
+import static ru.sooslick.royale.RoyaleUtil.logInfo;
+import static ru.sooslick.royale.RoyaleUtil.logWarning;
 
 public class Royale extends JavaPlugin {
 
@@ -18,9 +19,8 @@ public class Royale extends JavaPlugin {
     @Override
     public void onEnable() {
         R = this;                                                       //todo: replace all Royale parameters to static import
-        LOG = getServer().getLogger();
+        RoyaleUtil.LOG = getServer().getLogger();
         logInfo(RoyaleMessages.prefix + RoyaleMessages.onEnable);
-        RoyaleConfig.setLogger(LOG);                                    //todo: import static util
 
         //init config folder
         boolean dataFolderExists = false;
@@ -37,17 +37,15 @@ public class Royale extends JavaPlugin {
         //init config file
         CFG = new RoyaleConfig();
         try {
-            if (!dataFolderExists) {
-                throw new Exception();          //todo replace this
-            }
-            if (new File(getDataFolder().toString() + File.separator + "plugin.yml" ).exists()) {
-                CFG.readConfig(getConfig());
-                logInfo(RoyaleMessages.readConfig);
-            }
-            else {
-                this.saveDefaultConfig();
-                CFG.setDefaults();
-                logInfo(RoyaleMessages.createConfig);
+            if (dataFolderExists) {
+                if (new File(getDataFolder().toString() + File.separator + "plugin.yml").exists()) {
+                    CFG.readConfig(getConfig());
+                    logInfo(RoyaleMessages.readConfig);
+                } else {
+                    saveDefaultConfig();
+                    CFG.setDefaults();
+                    logInfo(RoyaleMessages.createConfig);
+                }
             }
         } catch (Exception ex) {
             CFG.setDefaults();
