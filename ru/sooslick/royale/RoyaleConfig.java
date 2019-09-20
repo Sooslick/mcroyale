@@ -20,8 +20,6 @@ import static ru.sooslick.royale.RoyaleUtil.logWarning;
 
 public class RoyaleConfig {
 
-    //todo: import static royaleutil - logger
-    //todo: save validator lambdas to predicate
     //todo read cfg silent param
 
     private static String YML;
@@ -82,8 +80,46 @@ public class RoyaleConfig {
     public HashMap<PotionType, Integer> airdropPotions;
     public HashMap<Material, Integer> airdropStackableItems;
 
+    private final HashMap<String, Validator> paramValidators = new HashMap<>();
+
     public RoyaleConfig() {
         setDefaults();
+        paramValidators.put("zoneStartSize", rangeIntValidator(1, 4096));
+        paramValidators.put("zonePreStartSize", rangeIntValidator(zoneStartSize, 4200));    //todo old value bug
+        paramValidators.put("zoneStartTimer", rangeIntValidator(60, 300));
+        paramValidators.put("zoneStartDelay", rangeIntValidator(0, 300));
+        paramValidators.put("zoneEndSize", rangeIntValidator(1, zoneStartSize));            //todo old value bug
+        //zoneEndSpeed
+        //zoneNewSizeMultiplier
+        paramValidators.put("zoneProcessorPeriod", rangeIntValidator(1, 20));
+        //zoneWaitTimerMultiplier
+        //zoneShrinkTimerMultiplier
+        //zoneStartDamage
+        //zoneDamageMultiplier
+        paramValidators.put("zoneLavaFlowSize", rangeIntValidator(1, 32));
+        paramValidators.put("lavaFlowPeriod", lesserThanIntValidator(10));
+        paramValidators.put("redzoneRadius", rangeIntValidator(1, zoneStartSize / 2));      //todo old value bug
+        paramValidators.put("redzonePeriod", rangeIntValidator(1, 100));
+        paramValidators.put("redzoneDuration", rangeIntValidator(1, 60));
+        paramValidators.put("redzoneDensity", rangeIntValidator(1, redzoneRadius));         //todo old value bug
+        paramValidators.put("redzoneStartDelay", lesserThanZeroIntValidator);
+        paramValidators.put("redzoneDelayMin", lesserThanZeroIntValidator);
+        paramValidators.put("redzoneDelayMax", lesserThanIntValidator(redzoneDelayMin));    //todo old value bug
+        paramValidators.put("redzoneDisableSize", lesserThanIntValidator(zoneLavaFlowSize));//todo old value bug
+        paramValidators.put("monstersStartDelay", lesserThanZeroIntValidator);
+        paramValidators.put("elytraFallHeight", lesserThanIntValidator(256));
+        paramValidators.put("lobbyMinVotestarters", lesserThanIntValidator(1));
+        //paramValidators.put("lobbyMinVotestartersPercent", ...)
+        paramValidators.put("lobbyPostGameCommandDelay", lesserThanZeroIntValidator);
+        paramValidators.put("squadMaxMembers", lesserThanIntValidator(1));
+        //gameOutsideBreakingMaxDistance
+        paramValidators.put("gameOutsideBreakingPeriod", lesserThanIntValidator(1));
+        paramValidators.put("airdropStartDelay", lesserThanZeroIntValidator);
+        paramValidators.put("airdropDelayMin", lesserThanZeroIntValidator);
+        paramValidators.put("airdropDelayMax", lesserThanIntValidator(airdropDelayMin));    //todo old value bug
+        paramValidators.put("airdropDisableSize", lesserThanIntValidator(zoneLavaFlowSize));//todo old value bug
+        //airdropEnchantedItemChance
+        //todo doubles and others
     }
 
     public void setDefaults() {
@@ -528,7 +564,7 @@ public class RoyaleConfig {
             Field rcf = RoyaleConfig.class.getDeclaredField(field);
             Field rmf = RoyaleMessages.class.getDeclaredField(field);
             int orig = cfg.getInt(field, dflt);
-            int fixed = v.validate(orig, dflt);
+            int fixed = v.validate(orig, dflt);     //todo get validator from hashmap, rm method parameter
             if (orig != fixed) {
                 useSuffix = true;
             }
@@ -548,7 +584,7 @@ public class RoyaleConfig {
             Field rcf = RoyaleConfig.class.getDeclaredField(field);
             Field rmf = RoyaleMessages.class.getDeclaredField(field);
             double orig = cfg.getDouble(field, dflt);
-            double fixed = v.validate(orig, dflt);
+            double fixed = v.validate(orig, dflt);    //todo get validator from hashmap, rm method parameter
             if (orig != fixed) {
                 useSuffix = true;
             }
@@ -577,21 +613,29 @@ public class RoyaleConfig {
     }
 
     //todo: 95% of duplicates: int, cfgGetDouble, Boolean, etc...
-    //todo: can refactor validators in one class?
+    //todo: can refactor validators in one class? 4 example <T extends Number> validate
+
+    public interface Validator {}
 
     @FunctionalInterface
-    public interface DoubleValidator {
+    public interface DoubleValidator extends Validator {
         double validate(double value, double dflt);
     }
 
     @FunctionalInterface
-    public interface IntValidator {
+    public interface IntValidator extends Validator {
         int validate(int value, int dflt);
     }
 
     private IntValidator lesserThanZeroIntValidator = (val, def) -> (val < 0) ? def : val;
 
-    //todo pairs field <-> validator
+    private IntValidator lesserThanIntValidator(int x) {
+        return (val, def) -> (val < x) ? def : val;
+    }
+
+    private IntValidator rangeIntValidator(int min, int max) {
+        return (val, def) -> (val < min || val > max) ? def : val;
+    }
 
     //todo: view param method
     //todo: setparam method
