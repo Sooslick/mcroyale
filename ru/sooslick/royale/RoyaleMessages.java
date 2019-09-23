@@ -11,9 +11,9 @@ public class RoyaleMessages {
     public static final String createConfigException = "§4Can't create plugin.yml! Game configuration will not be saved!";  //todo - prefix
     public static final String writeConfigException = "Can't write config.yml!";
     public static final String zoneStartSize = "Gamezone start size: %s blocks";
-    public static final String zonePreStartSize = "%s";
-    public static final String zoneStartTimer = "%s";
-    public static final String zoneStartDelay = "%s";
+    public static final String zonePreStartSize = "Gamezone size before start: %s blocks";
+    public static final String zoneStartTimer = "Initial gamezone duration: %s seconds";
+    public static final String zoneStartDelay = "Initial gamezone delay: %s seconds";
     public static final String zoneEndSize = "%s";
     public static final String zoneEndSpeed = "%s";
     public static final String zoneNewSizeMultiplier = "%s";

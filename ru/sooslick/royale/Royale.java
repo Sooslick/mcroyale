@@ -58,7 +58,7 @@ public class Royale extends JavaPlugin {
         gameState = GameState.LOBBY;
 
         //register events
-        getServer().getPluginManager().registerEvents(new EventProcessor(this), this);
+        getServer().getPluginManager().registerEvents(new EventProcessor(), this);
         CommandProcessor cp = new CommandProcessor();
         getCommand("royale").setExecutor(cp);
         getCommand("squad").setExecutor(cp);

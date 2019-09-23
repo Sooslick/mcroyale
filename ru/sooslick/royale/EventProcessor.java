@@ -8,14 +8,9 @@ import org.bukkit.event.player.PlayerQuitEvent;
 
 import static ru.sooslick.royale.Royale.players;
 
+import static ru.sooslick.royale.Royale.R;      //todo - implement events
+
 public class EventProcessor implements Listener {
-
-    private static Royale R;
-
-    public EventProcessor(Royale royale) {
-        R = royale;
-        //todo - is necessary rm variable R bcs static references?
-    }
 
     @EventHandler
     public void onJoin(PlayerJoinEvent e) {
