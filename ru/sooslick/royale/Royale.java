@@ -18,7 +18,7 @@ public class Royale extends JavaPlugin {
 
     @Override
     public void onEnable() {
-        R = this;                                                       //todo: replace all Royale parameters to static import
+        R = this;
         RoyaleUtil.LOG = getServer().getLogger();
         logInfo(RoyaleMessages.prefix + RoyaleMessages.onEnable);
 

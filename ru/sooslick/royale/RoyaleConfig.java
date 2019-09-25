@@ -89,13 +89,13 @@ public class RoyaleConfig {
         paramValidators.put("zoneStartTimer", rangeIntValidator(60, 300));
         paramValidators.put("zoneStartDelay", rangeIntValidator(0, 300));
         paramValidators.put("zoneEndSize", rangeIntValidator(1, zoneStartSize));            //todo old value bug
-        //zoneEndSpeed
-        //zoneNewSizeMultiplier
+        paramValidators.put("zoneEndSpeed", rangeDoubleValidator(0, 5));
+        paramValidators.put("zoneNewSizeMultiplier", strictRangeDoubleValidator(0,1));
         paramValidators.put("zoneProcessorPeriod", rangeIntValidator(1, 20));
-        //zoneWaitTimerMultiplier
-        //zoneShrinkTimerMultiplier
-        //zoneStartDamage
-        //zoneDamageMultiplier
+        paramValidators.put("zoneWaitTimerMultiplier", rangeDoubleValidator(0,2));
+        paramValidators.put("zoneShrinkTimerMultiplier", rangeDoubleValidator(0,2));
+        paramValidators.put("zoneStartDamage", lesserThanDoubleValidator(0));
+        paramValidators.put("zoneDamageMultiplier", lesserThanDoubleValidator(1));
         paramValidators.put("zoneLavaFlowSize", rangeIntValidator(1, 32));
         paramValidators.put("lavaFlowPeriod", lesserThanIntValidator(10));
         paramValidators.put("redzoneRadius", rangeIntValidator(1, zoneStartSize / 2));      //todo old value bug
@@ -109,16 +109,16 @@ public class RoyaleConfig {
         paramValidators.put("monstersStartDelay", lesserThanZeroIntValidator);
         paramValidators.put("elytraFallHeight", lesserThanIntValidator(256));
         paramValidators.put("lobbyMinVotestarters", lesserThanIntValidator(1));
-        //paramValidators.put("lobbyMinVotestartersPercent", ...)
+        paramValidators.put("lobbyMinVotestartersPercent", rangeDoubleValidator(0,1));
         paramValidators.put("lobbyPostGameCommandDelay", lesserThanZeroIntValidator);
         paramValidators.put("squadMaxMembers", lesserThanIntValidator(1));
-        //gameOutsideBreakingMaxDistance
+        paramValidators.put("gameOutsideBreakingMaxDistance", rangeDoubleValidator(1.5, 9));
         paramValidators.put("gameOutsideBreakingPeriod", lesserThanIntValidator(1));
         paramValidators.put("airdropStartDelay", lesserThanZeroIntValidator);
         paramValidators.put("airdropDelayMin", lesserThanZeroIntValidator);
         paramValidators.put("airdropDelayMax", lesserThanIntValidator(airdropDelayMin));    //todo old value bug
         paramValidators.put("airdropDisableSize", lesserThanIntValidator(zoneLavaFlowSize));//todo old value bug
-        //airdropEnchantedItemChance
+        paramValidators.put("airdropEnchantedItemChance", rangeDoubleValidator(0,1));
         //todo doubles and others
     }
 
@@ -465,7 +465,6 @@ public class RoyaleConfig {
         }
         logInfo(RoyaleMessages.airdropStackableItems);
 
-        //todo: refactor if possible
         //todo: comment config fields in yml
 
         //todo: new features
@@ -538,6 +537,7 @@ public class RoyaleConfig {
         saveSection(cfg, "airdropStackableItems", airdropStackableItems);
         try {
             cfg.save(YML);
+            //todo message
             return true;
         } catch (IOException e) {
             logWarning(RoyaleMessages.writeConfigException);
@@ -635,6 +635,19 @@ public class RoyaleConfig {
 
     private IntValidator rangeIntValidator(int min, int max) {
         return (val, def) -> (val < min || val > max) ? def : val;
+    }
+
+    private DoubleValidator lesserThanDoubleValidator(double x) {
+        return (val, def) -> (val < x) ? def : val;
+    }
+
+    private DoubleValidator rangeDoubleValidator(double min, double max) {
+        return (val, def) -> (val <= min || val > max) ? def : val;
+    }
+
+    //todo: only 1 usage... + ref. percent validator?
+    private DoubleValidator strictRangeDoubleValidator(double min, double max) {
+        return (val, def) -> (val <= min || val >= max) ? def : val;
     }
 
     //todo: view param method
