@@ -69,6 +69,7 @@ public class Royale extends JavaPlugin {
     @Override
     public void onDisable() {
         CFG.saveConfig(getConfig());
+        //todo: print config file to console if cannot save
     }
 
     //todo: test, test and test all config manipulations. I still don't understand, HOW this works!

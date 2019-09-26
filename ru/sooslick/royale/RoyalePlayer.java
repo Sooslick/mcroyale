@@ -41,16 +41,7 @@ public class RoyalePlayer {
         squad = null;
         alive = false;
         alertTimer = 0;
-        //todo get stats from yml-file - and refactor it!
-    }
-
-    public RoyalePlayer(String name) {
-        this.name = name;
-        player = Bukkit.getPlayer(name);
-        squad = null;
-        alive = false;
-        alertTimer = 0;
-        //todo ref.
+        readStat();
     }
 
     public void prepare() {
@@ -66,7 +57,7 @@ public class RoyalePlayer {
     public void disconnect() {
         savedPosition = player.getLocation();
         //todo if GAME state -> invtochest trigger, game events trigger
-        //todo write player state to yml-file
+        saveStat();
         player = null;
     }
 
@@ -115,8 +106,8 @@ public class RoyalePlayer {
     }
 
     public void readStat() {
-        YamlConfiguration f = new YamlConfiguration();
         try {
+            YamlConfiguration f = new YamlConfiguration();
             f.load(R.getDataFolder() + File.separator + name + extension);
             gamesTotal = f.getInt("gamesTotal", 0);
             gamesWon = f.getInt("gamesWon", 0);
@@ -124,13 +115,14 @@ public class RoyalePlayer {
             deadbyPlayer = f.getInt("deadbyPlayer", 0);
             deadbyMob = f.getInt("deadbyMob", 0);
             deadbyEnv = f.getInt("deadbyEnv", 0);
+            return;
         } catch (FileNotFoundException e) {
-            //todo Royale Messages
-        } catch (IOException e) {
-            //todo
-        } catch (InvalidConfigurationException e) {
-            //todo гав тяф
+            RoyaleUtil.logInfo(RoyaleMessages.playerFirstJoin);
+        } catch (IOException | InvalidConfigurationException e) {
+            RoyaleUtil.logInfo(RoyaleMessages.playerInvalidStat);
         }
+        //set stats with zeros if exception was caught
+        resetStat();
     }
 
     public void saveStat() {
@@ -144,8 +136,17 @@ public class RoyalePlayer {
         try {
             f.save(R.getDataFolder() + File.separator + name + extension);
         } catch (IOException e) {
-            //todo gaf tяf message
+            RoyaleUtil.logInfo(RoyaleMessages.playerWriteStatError);
         }
+    }
+
+    private void resetStat() {
+        gamesTotal = 0;
+        gamesWon = 0;
+        kills = 0;
+        deadbyPlayer = 0;
+        deadbyMob = 0;
+        deadbyEnv = 0;
     }
 
 }

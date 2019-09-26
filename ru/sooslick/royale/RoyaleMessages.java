@@ -69,6 +69,9 @@ public class RoyaleMessages {
     public static final String cantWriteConfigField = "Config field '%s' not available";
     public static final String noSuchEnum = "Unknown param: %s";
     public static final String squadMultipleInvites = "squads: %s";
+    public static final String playerFirstJoin = "%s";
+    public static final String playerInvalidStat = "%s";
+    public static final String playerWriteStatError = "%s";
     //todo: messages
 
     public static final String suffixNone = "";

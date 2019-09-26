@@ -548,10 +548,13 @@ public class RoyaleConfig {
     private <T, V> void saveSection(ConfigurationSection cfg, String section, HashMap<T, V> values) {
         ConfigurationSection cs = cfg.createSection(section);
         for (T key : values.keySet()) {
-            cs.set(key.toString(), values.get(key));
+            if (values.get(key) instanceof HashMap) {
+                saveSection(cs, key.toString(), (HashMap)values.get(key));  //test assignment
+            } else {
+                cs.set(key.toString(), values.get(key));
+            }
         }
         //todo: test method
-        //todo: if V is conf section? Impl recursive method
     }
 
     public static void setConfigFile(String file) {
