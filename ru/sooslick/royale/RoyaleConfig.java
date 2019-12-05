@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Set;
+import java.util.logging.Logger;
 
 import static ru.sooslick.royale.RoyaleMessages.suffixNone;
 import static ru.sooslick.royale.RoyaleMessages.suffixRed;
@@ -90,10 +91,10 @@ public class RoyaleConfig {
         paramValidators.put("zoneStartDelay", rangeIntValidator(0, 300));
         paramValidators.put("zoneEndSize", rangeIntValidator(1, zoneStartSize));            //todo old value bug
         paramValidators.put("zoneEndSpeed", rangeDoubleValidator(0, 5));
-        paramValidators.put("zoneNewSizeMultiplier", strictRangeDoubleValidator(0,1));
+        paramValidators.put("zoneNewSizeMultiplier", strictRangeDoubleValidator(0, 1));
         paramValidators.put("zoneProcessorPeriod", rangeIntValidator(1, 20));
-        paramValidators.put("zoneWaitTimerMultiplier", rangeDoubleValidator(0,2));
-        paramValidators.put("zoneShrinkTimerMultiplier", rangeDoubleValidator(0,2));
+        paramValidators.put("zoneWaitTimerMultiplier", rangeDoubleValidator(0, 2));
+        paramValidators.put("zoneShrinkTimerMultiplier", rangeDoubleValidator(0, 2));
         paramValidators.put("zoneStartDamage", lesserThanDoubleValidator(0));
         paramValidators.put("zoneDamageMultiplier", lesserThanDoubleValidator(1));
         paramValidators.put("zoneLavaFlowSize", rangeIntValidator(1, 32));
@@ -109,7 +110,7 @@ public class RoyaleConfig {
         paramValidators.put("monstersStartDelay", lesserThanZeroIntValidator);
         paramValidators.put("elytraFallHeight", lesserThanIntValidator(256));
         paramValidators.put("lobbyMinVotestarters", lesserThanIntValidator(1));
-        paramValidators.put("lobbyMinVotestartersPercent", rangeDoubleValidator(0,1));
+        paramValidators.put("lobbyMinVotestartersPercent", rangeDoubleValidator(0, 1));
         paramValidators.put("lobbyPostGameCommandDelay", lesserThanZeroIntValidator);
         paramValidators.put("squadMaxMembers", lesserThanIntValidator(1));
         paramValidators.put("gameOutsideBreakingMaxDistance", rangeDoubleValidator(1.5, 9));
@@ -118,7 +119,7 @@ public class RoyaleConfig {
         paramValidators.put("airdropDelayMin", lesserThanZeroIntValidator);
         paramValidators.put("airdropDelayMax", lesserThanIntValidator(airdropDelayMin));    //todo old value bug
         paramValidators.put("airdropDisableSize", lesserThanIntValidator(zoneLavaFlowSize));//todo old value bug
-        paramValidators.put("airdropEnchantedItemChance", rangeDoubleValidator(0,1));
+        paramValidators.put("airdropEnchantedItemChance", rangeDoubleValidator(0, 1));
         //todo doubles and others
     }
 
@@ -545,11 +546,83 @@ public class RoyaleConfig {
         }
     }
 
+    //todo wip
+    public void printConfig() {
+        logInfo(RoyaleMessages.printConfig);
+        Logger LOG = RoyaleUtil.LOG;
+        StringBuilder sb = new StringBuilder().append(RoyaleMessages.line)
+                //todo refactor: sb.appendCfgValue
+                .append("zoneStartSize: ").append(zoneStartSize)
+                .append("zonePreStartSize: ").append(zonePreStartSize)
+                .append("zoneStartTimer: ").append(zoneStartTimer)
+                .append("zoneStartDelay: ").append(zoneStartDelay)
+                .append("zoneEndSize: ").append(zoneEndSize)
+                .append("zoneEndSpeed: ").append(zoneEndSpeed)
+                .append("zoneNewSizeMultiplier: ").append(zoneNewSizeMultiplier)
+                .append("zoneProcessorPeriod: ").append(zoneProcessorPeriod)
+                .append("zoneWaitTimerMultiplier: ").append(zoneWaitTimerMultiplier)
+                .append("zoneShrinkTimerMultiplier: ").append(zoneShrinkTimerMultiplier)
+                .append("zoneCenterOffsetEnabled: ").append(zoneCenterOffsetEnabled)
+                .append("zoneStartDamage: ").append(zoneStartDamage)
+                .append("zoneDamageMultiplier: ").append(zoneDamageMultiplier)
+                .append("zoneLavaFlowSize: ").append(zoneLavaFlowSize)
+                .append("lavaFlowPeriod: ").append(lavaFlowPeriod)
+                .append("redzoneEnabled: ").append(redzoneEnabled)
+                .append("redzoneRadius: ").append(redzoneRadius)
+                .append("redzonePeriod: ").append(redzonePeriod)
+                .append("redzoneDuration: ").append(redzoneDuration)
+                .append("redzoneDensity: ").append(redzoneDensity)
+                .append("redzoneStartDelay: ").append(redzoneStartDelay)
+                .append("redzoneDelayMin: ").append(redzoneDelayMin)
+                .append("redzoneDelayMax: ").append(redzoneDelayMax)
+                .append("redzoneDisableSize: ").append(redzoneDisableSize)
+                .append("monstersEnabled: ").append(monstersEnabled)
+                .append("monstersStartDelay: ").append(monstersStartDelay)
+                //.append(": ").append(public HashMap<EntityType, Double> monstersSpawnChances) //todo here and below: util-method to get print section
+                .append("elytraStartEnabled: ").append(elytraStartEnabled)
+                .append("elytraFallHeight: ").append(elytraFallHeight)
+                .append("lobbyMinVotestarters: ").append(lobbyMinVotestarters)
+                .append("lobbyMinVotestartersPercent: ").append(lobbyMinVotestartersPercent)
+                .append("lobbyPostGameCommandEnabled: ").append(lobbyPostGameCommandEnabled)
+                .append("lobbyPostGameCommand: ").append(lobbyPostGameCommand)
+                .append("lobbyPostGameCommandDelay: ").append(lobbyPostGameCommandDelay)
+                .append("squadMaxMembers: ").append(squadMaxMembers)
+                .append("squadNametagVisiblity: ").append(squadNametagVisiblity)
+                .append("squadFriendlyFireEnabled: ").append(squadFriendlyFireEnabled)
+                .append("squadAutoBalancingEnabled: ").append(squadAutoBalancingEnabled)
+                .append("gameOutsideBreakingEnabled: ").append(gameOutsideBreakingEnabled)
+                .append("gameOutsideBreakingMaxDistance: ").append(gameOutsideBreakingMaxDistance)
+                .append("gameOutsideBreakingPeriod: ").append(gameOutsideBreakingPeriod)
+                .append("gameGiveZoneMap: ").append(gameGiveZoneMap)
+                .append("gameContainerTrackingEnabled: ").append(gameContainerTrackingEnabled)
+                .append("gameContainerReplacmentMaterial: ").append(gameContainerReplacmentMaterial)
+                .append("airdropEnabled: ").append(airdropEnabled)
+                .append("airdropAlertEnabled: ").append(airdropAlertEnabled)
+                .append("airdropStartDelay: ").append(airdropStartDelay)
+                .append("airdropDelayMin: ").append(airdropDelayMin)
+                .append("airdropDelayMax: ").append(airdropDelayMax)
+                .append("airdropDisableSize: ").append(airdropDisableSize)
+//                .append(": ").append(public HashMap<Material, Integer> airdropItems)
+                .append("airdropEnchantedItemChance: ").append(airdropEnchantedItemChance)
+//                .append(": ").append(public HashMap<Material, HashMap<Enchantment, Integer>> airdropEnchantments)
+//                .append(": ").append(public HashMap<PotionType, Integer> airdropPotions)
+//                .append(": ").append(public HashMap<Material, Integer> airdropStackableItems)
+        .append(RoyaleMessages.line);
+        LOG.info(sb.toString());
+    }
+
+    public void pringConfigValue(String value) {
+        Object o = getConfigValue(value);
+        if (o != null)
+            logInfo(value + ": " + o.toString());
+            //todo: method-formatter
+    }
+
     private <T, V> void saveSection(ConfigurationSection cfg, String section, HashMap<T, V> values) {
         ConfigurationSection cs = cfg.createSection(section);
         for (T key : values.keySet()) {
             if (values.get(key) instanceof HashMap) {
-                saveSection(cs, key.toString(), (HashMap)values.get(key));  //test assignment
+                saveSection(cs, key.toString(), (HashMap) values.get(key));  //todo test assignment
             } else {
                 cs.set(key.toString(), values.get(key));
             }
@@ -612,13 +685,29 @@ public class RoyaleConfig {
         } catch (IllegalAccessException e) {
             logWarning(String.format(RoyaleMessages.cantWriteConfigField, field));
         }
+    }
 
+    private StringBuilder appendConfigValue(StringBuilder sb, String value) {
+        return sb.append(getConfigValue(value));
+        //todo null or map cases
+    }
+
+    private Object getConfigValue(String field) {
+        try {
+            return RoyaleConfig.class.getDeclaredField(field).get(this);
+        } catch (NoSuchFieldException e) {
+            logWarning(String.format(RoyaleMessages.noSuchConfigField, field));
+        } catch (IllegalAccessException e) {
+            logWarning(String.format(RoyaleMessages.cantWriteConfigField, field));
+        }
+        return null;
     }
 
     //todo: 95% of duplicates: int, cfgGetDouble, Boolean, etc...
     //todo: can refactor validators in one class? 4 example <T extends Number> validate
 
-    public interface Validator {}
+    public interface Validator {
+    }
 
     @FunctionalInterface
     public interface DoubleValidator extends Validator {
@@ -657,5 +746,7 @@ public class RoyaleConfig {
     //todo: setparam method
     //todo: viewparams method
     //todo: yml comments
+
+    //todo cfg -> static cfgholder
 
 }

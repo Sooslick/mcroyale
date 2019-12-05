@@ -2,7 +2,16 @@ package ru.sooslick.royale;
 
 public class RoyaleMessages {
 
+    //tech
     public static final String prefix = "[Royale] ";
+    public static final String line = "\n";
+
+    //suffixes
+    public static final String suffixNone = "";
+    public static final String suffixRed = "§4";
+    public static final String suffixYellow = "§e";
+
+    //messages
     public static final String onEnable = "Loading mcRoyale...";
     public static final String createDataFolder = "Data folder created!";
     public static final String dataFolderException = "§4Can't create data folder! Player's statistics and game configuration will not be saved.";   //todo - prefix
@@ -10,6 +19,17 @@ public class RoyaleMessages {
     public static final String readConfig = "Read plugin.yml file!";
     public static final String createConfigException = "§4Can't create plugin.yml! Game configuration will not be saved!";  //todo - prefix
     public static final String writeConfigException = "Can't write config.yml!";
+    public static final String printConfig = "Config values are:";
+    public static final String noSuchConfigField = "Config field '%s' not found";
+    public static final String cantWriteConfigField = "Config field '%s' not available";
+    public static final String noSuchEnum = "Unknown param: %s";
+    public static final String squadMultipleInvites = "squads: %s";
+    public static final String playerFirstJoin = "%s";
+    public static final String playerInvalidStat = "%s";
+    public static final String playerWriteStatError = "%s";
+    //todo: messages
+
+    //config
     public static final String zoneStartSize = "Gamezone start size: %s blocks";
     public static final String zonePreStartSize = "Gamezone size before start: %s blocks";
     public static final String zoneStartTimer = "Initial gamezone duration: %s seconds";
@@ -65,16 +85,4 @@ public class RoyaleMessages {
     public static final String airdropEnchantments = "%s";
     public static final String airdropPotions = "%s";
     public static final String airdropStackableItems = "%s";
-    public static final String noSuchConfigField = "Config field '%s' not found";
-    public static final String cantWriteConfigField = "Config field '%s' not available";
-    public static final String noSuchEnum = "Unknown param: %s";
-    public static final String squadMultipleInvites = "squads: %s";
-    public static final String playerFirstJoin = "%s";
-    public static final String playerInvalidStat = "%s";
-    public static final String playerWriteStatError = "%s";
-    //todo: messages
-
-    public static final String suffixNone = "";
-    public static final String suffixRed = "§4";
-    public static final String suffixYellow = "§e";
 }

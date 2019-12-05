@@ -11,7 +11,11 @@ public class RoyaleUtil {
     }
 
     public static void logWarning(String msg) {
-        LOG.warning(RoyaleMessages.suffixYellow + RoyaleMessages.prefix + msg);
+        LOG.warning(RoyaleMessages.suffixYellow + RoyaleMessages.prefix + msg); //todo stringbuilder
+    }
+
+    public static void logLine() {
+        LOG.info(RoyaleMessages.line);
     }
 
 }

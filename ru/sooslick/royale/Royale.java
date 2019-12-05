@@ -68,6 +68,7 @@ public class Royale extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        //todo message
         CFG.saveConfig(getConfig());
         //todo: print config file to console if cannot save
     }
