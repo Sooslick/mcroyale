@@ -1,64 +1,33 @@
 package ru.sooslick.royale;
 
+import org.bukkit.Bukkit;
+import org.bukkit.WorldBorder;
 import org.bukkit.plugin.java.JavaPlugin;
-
-import java.io.File;
-
-import static ru.sooslick.royale.RoyaleUtil.logInfo;
-import static ru.sooslick.royale.RoyaleUtil.logWarning;
+import ru.sooslick.royale.config.RoyaleConfig;
+import ru.sooslick.royale.config.ZoneConfig;
 
 public class Royale extends JavaPlugin {
-
     public static Royale R;
-    public static RoyaleConfig CFG;
-    public static RoyalePlayerList players;
-    public static RoyaleSquadList squads;
 
-    public static GameState gameState;
+    private RoyaleSquadList squads;     //todo royalePlayerList - unused?
+    private GameState gameState;
 
     @Override
     public void onEnable() {
-        R = this;
-        RoyaleUtil.LOG = getServer().getLogger();
-        logInfo(RoyaleMessages.prefix + RoyaleMessages.onEnable);
+        R = this;                                                       //todo: replace all Royale parameters to static import
+        RoyaleLogger.initWith(getLogger());
+        RoyaleLogger.info(RoyaleMessages.debugOnEnable);
 
-        //init config folder
-        boolean dataFolderExists = false;
-        try {
-            if (!getDataFolder().exists()) {
-                dataFolderExists = getDataFolder().mkdir();
-                logInfo(RoyaleMessages.createDataFolder);
-            }
-        } catch (Exception ex) {
-            logWarning(RoyaleMessages.dataFolderException);
-        }
-        RoyaleConfig.setConfigFile(getDataFolder().toString() + File.separator + "plugin.yml");
+        //create data folder and default config if not exists
+        saveDefaultConfig();
 
-        //init config file
-        CFG = new RoyaleConfig();
-        try {
-            if (dataFolderExists) {
-                if (new File(getDataFolder().toString() + File.separator + "plugin.yml").exists()) {
-                    CFG.readConfig(getConfig());
-                    logInfo(RoyaleMessages.readConfig);
-                } else {
-                    saveDefaultConfig();
-                    CFG.setDefaults();
-                    logInfo(RoyaleMessages.createConfig);
-                }
-            }
-        } catch (Exception ex) {
-            CFG.setDefaults();
-            logWarning(RoyaleMessages.createConfigException);
-        }
-
-        //init player holders
-        players = new RoyalePlayerList();
-        squads = new RoyaleSquadList();
-        gameState = GameState.LOBBY;
+        //init lobby
+        changeGameState(GameState.LOBBY);
 
         //register events
-        getServer().getPluginManager().registerEvents(new EventProcessor(), this);
+        //todo: separate lobby & game listeners
+        //todo: separate command listeners
+        getServer().getPluginManager().registerEvents(new EventProcessor(this), this);
         CommandProcessor cp = new CommandProcessor();
         getCommand("royale").setExecutor(cp);
         getCommand("squad").setExecutor(cp);
@@ -68,11 +37,24 @@ public class Royale extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        //todo message
-        CFG.saveConfig(getConfig());
-        //todo: print config file to console if cannot save
+        //todo ??? cleanup?
     }
 
-    //todo: test, test and test all config manipulations. I still don't understand, HOW this works!
+    private void changeGameState(GameState newState) {
+        gameState = newState;
+        switch (gameState) {
+            case LOBBY:
+                RoyaleConfig.readConfig();
+                squads = new RoyaleSquadList();
 
+                //restore world border
+                WorldBorder wb = Bukkit.getWorlds().get(0).getWorldBorder();
+                wb.setCenter(0, 0);
+                wb.setSize(ZoneConfig.zonePreStartSize);
+                return;
+            case GAME:
+                return;
+            case POSTGAME:
+        }
+    }
 }

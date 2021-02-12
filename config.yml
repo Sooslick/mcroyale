@@ -1,57 +1,113 @@
-zoneStartSize: 2048
-zonePreStartSize: 2055
-zoneStartTimer: 300
+# lobby
+lobbyMinVotestarters: 3
+lobbyMinVotestartersPercent: 0.51
+
+# endgame
+lobbyPostGameCommandEnabled: false
+# command that will be dispatched after game ends
+lobbyPostGameCommand: say post-game event triggered
+# delay before command will be executed (in seconds)
+lobbyPostGameCommandDelay: 60
+
+# squads
+squadMaxMembers: 4
+squadNametagVisiblity: FOR_OWN_TEAM
+squadFriendlyFireEnabled: true
+# allow auto join people to notfull squads
+squadAutoBalancingEnabled: false
+
+# play zone
+# lobby & spawn area
+zonePreStartSize: 1005
+# delay before first square (in seconds)
 zoneStartDelay: 60
-zoneEndSize: 100
-zoneEndSpeed: 0.5
-zoneNewSizeMultiplier: 0.5
-zoneProcessorPeriod: 10
-zoneWaitTimerMultiplier: 0.75
-zoneShrinkTimerMultiplier: 0.66
+# squares
+zones:
+  - zoneSize: 1000
+    zoneDelay: 300
+    zoneShrinkTime: 300
+    zoneDamage: 0.01
+  - zoneSize: 500
+    zoneDelay: 180
+    zoneShrinkTime: 180
+    zoneDamage: 0.05
+  - zoneSize: 250
+    zoneDelay: 90
+    zoneShrinkTime: 120
+    zoneDamage: 0.25
+  - zoneSize: 125
+    zoneDelay: 60
+    zoneShrinkTime: 120
+    zoneDamage: 1
+# random zone center
 zoneCenterOffsetEnabled: true
-zoneStartDamage: 0.01
-zoneDamageMultiplier: 2
+# last square size
 zoneLavaFlowSize: 16
+# frequency of lava level increasing (in ticks)
 lavaFlowPeriod: 30
-redzoneEnabled: true
+# allow to break blocks outside the zone
+outsideBreakingEnabled: true
+# distance to breaking block
+outsideBreakingMaxDistance: 3
+
+# redzone
+redzoneEnabled: false
+# radius of tnt spawn
 redzoneRadius: 25
+# frequency of spawning tnts (in ticks)
 redzonePeriod: 10
+# duration of spawning tnts (in seconds)
 redzoneDuration: 20
+# amount of tnts spawned per tick
 redzoneDensity: 5
+# delay before first redzone (in seconds)
 redzoneStartDelay: 350
+# delay between redzones (in seconds)
 redzoneDelayMin: 60
 redzoneDelayMax: 120
+# disable redzone when play area too small
 redzoneDisableSize: 250
+
+# hostile mobs
 monstersEnabled: true
+# delay before hostile mobs enabled (in seconds)
 monstersStartDelay: 310
+# spawn rates multiplier
 monstersSpawnChances:
   ZOMBIE: 0.5
   SKELETON: 0.5
   CREEPER: 0.5
   WITCH: 0.25
-elytraStartEnabled: true
+
+# elytra start
+elytraStartEnabled: false
 elytraFallHeight: 1600
-lobbyMinVotestarters: 3
-lobbyMinVotestartersPercent: 0.51
-lobbyPostGameCommandEnabled: true
-lobbyPostGameCommand: say post-game event triggered
-lobbyPostGameCommandDelay: 60
-squadMaxMembers: 4
-squadNametagVisiblity: FOR_OWN_TEAM
-squadFriendlyFireEnabled: true
-squadAutoBalancingEnabled: true
-gameOutsideBreakingEnabled: true
-gameOutsideBreakingMaxDistance: 3
-gameOutsideBreakingPeriod: 10
-gameGiveZoneMap: true
-gameContainerTrackingEnabled: true
-gameContainerReplacmentMaterial: MOSSY_COBBLESTONE
+
+# safezone informing
+# give map with zone to inventory
+safeZoneMapEnabled: true
+# alert player if not in safezone
+safeZoneAlertEnabled: true
+# give compass to zone center
+safeZoneCompassEnabled: true
+# enable /z command
+safeZoneCommandEnabled: true
+
+# Loot tracking
+lootTrackingEnabled: true
+
+# airdrops
 airdropEnabled: true
+# alert before spawn airdrop
 airdropAlertEnabled: true
+# delay before first airdrop (in seconds)
 airdropStartDelay: 250
+# delay between airdrops (in seconds)
 airdropDelayMin: 120
 airdropDelayMax: 240
+# zone size airdrop disabled at
 airdropDisableSize: 300
+# chances of item spawns in each slot of chest
 airdropItems:
   AIR: 200
   COBBLESTONE: 100
@@ -59,7 +115,9 @@ airdropItems:
   BOW: 10
   IRON_SWORD: 2
   SPLASH_POTION: 1
+# chance of enchanted item spawn
 airdropEnchantedItemChance: 0.1
+# list of enchantment for each item
 airdropEnchantments:
   BOW:
     ARROW_DAMAGE: 3
@@ -67,11 +125,13 @@ airdropEnchantments:
   IRON_SWORD:
     DAMAGE_ALL: 4
     KNOCKBACK: 1
+# list of chances to potions
 airdropPotions:
   INSTANT_HEAL: 10
   SPEED: 8
   INSTANT_DAMAGE: 5
   STRENGTH: 4
+# list of max stack size for stackable items
 airdropStackableItems:
   ARROW: 16
   COBBLESTONE: 64

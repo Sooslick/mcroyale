@@ -3,9 +3,7 @@ package ru.sooslick.royale;
 import org.bukkit.Location;
 import org.bukkit.World;
 
-public abstract class AbstractZone {
-
-    private static int period;  //zone tick period
+public class Zone {
     private static World w;     //zone world
     private double xc;          //zone center x
     private double zc;          //zone center z
@@ -15,12 +13,9 @@ public abstract class AbstractZone {
     private double nzb;         //zone negative z bound
     private double pzb;         //zone positive z bound
 
-    public AbstractZone() {
-        setZone(0, 0, 100);
-    }
-
-    public AbstractZone(double xc, double zc, double size) {
-        setZone(xc, zc, size);
+    public Zone(Location l, double size) {
+        setZone(l.getX(), l.getZ(), size);
+        w = l.getWorld();
     }
 
     public void setSize(double size) {
@@ -47,6 +42,7 @@ public abstract class AbstractZone {
     }
 
     public double distanceToBorder(double x, double z) {
+        //todo square! Добавить перегрузку для учета, нужно ли считать расстояние если isInside
         return distanceToCenter(x, z) - size/2;
     }
 
@@ -56,11 +52,6 @@ public abstract class AbstractZone {
 
     public boolean isInside(double x, double z) {
         return ((x > nxb) && (x < pxb) && (z > nzb) && (z < pzb));
-    }
-
-    public boolean secondTriggered(int checkedSecond, int ticksRemain){
-        int ticks = checkedSecond * 20;
-        return ((ticksRemain < ticks) && (ticksRemain + period >= ticks));
     }
 
     private void recalculateBounds() {
