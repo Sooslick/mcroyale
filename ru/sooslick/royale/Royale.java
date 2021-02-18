@@ -16,7 +16,6 @@ public class Royale extends JavaPlugin {
     public void onEnable() {
         R = this;                                                       //todo: replace all Royale parameters to static import
         RoyaleLogger.initWith(getLogger());
-        RoyaleLogger.info(RoyaleMessages.debugOnEnable);
 
         //create data folder and default config if not exists
         saveDefaultConfig();
@@ -27,12 +26,11 @@ public class Royale extends JavaPlugin {
         //register events
         //todo: separate lobby & game listeners
         //todo: separate command listeners
-        getServer().getPluginManager().registerEvents(new EventProcessor(this), this);
-        CommandProcessor cp = new CommandProcessor();
-        getCommand("royale").setExecutor(cp);
-        getCommand("squad").setExecutor(cp);
-        getCommand("zone").setExecutor(cp);
-        getCommand("votestart").setExecutor(cp);
+        //getServer().getPluginManager().registerEvents(new EventProcessor(this), this);
+        //getCommand("royale").setExecutor(cp);
+        getCommand("squad").setExecutor(new SquadCommandListener());
+        //getCommand("zone").setExecutor(cp);
+        //getCommand("votestart").setExecutor(cp);
     }
 
     @Override

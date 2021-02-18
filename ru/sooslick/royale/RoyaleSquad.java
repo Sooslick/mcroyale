@@ -1,33 +1,41 @@
 package ru.sooslick.royale;
 
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 
 import java.util.LinkedList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class RoyaleSquad {
-
-    //static royale... todo
     static int maxMembers;
     static Scoreboard sb;   //todo move to SquadList or Royale, static import
 
     private String name;
     private RoyalePlayer leader;
-    private LinkedList<RoyalePlayer> playerList;
+    private List<RoyalePlayer> playerList;
     private ItemStack teamMap;
     private boolean allowRequest;
     private boolean allowAutobalance;
     private Team team;
 
+    //todo refactor RoyalePlayers args
     public RoyaleSquad(String name, RoyalePlayer leader) {
         this.name = name;
         this.leader = leader;
         playerList = new LinkedList<>();
         playerList.add(leader);
+        //todo copy leader settings
         allowRequest = true;
         allowAutobalance = true;
+        //todo create scoreboard
         team = sb.registerNewTeam(name);
+    }
+
+    public String getName() {
+        return name;
     }
 
     public void setName(String name) {
@@ -35,22 +43,21 @@ public class RoyaleSquad {
         team.setDisplayName(name);
     }
 
-    public LinkedList<RoyalePlayer> getPlayers() {
+    public List<RoyalePlayer> getPlayers() {
         return playerList;
     }
 
-    public boolean hasPlayer(RoyalePlayer p) {
-        for (RoyalePlayer rp : playerList) {
-            if (rp.equals(p)) {
-                return true;
-            }
-        }
-        return false;
+    public String formatPlayerList() {
+        return playerList.stream().map(RoyalePlayer::getName).collect(Collectors.joining());
     }
 
-    public void addPlayer(RoyalePlayer p) {
+    public boolean hasPlayer(Player p) {
+        return playerList.stream().anyMatch(rpl -> rpl.getName().equals(p.getName()));
+    }
+
+    public void addPlayer(Player p) {
         if ((getPlayersCount() < maxMembers) && !hasPlayer(p)) {
-            playerList.add(p);
+            playerList.add(new RoyalePlayer(p));
         }
     }
 

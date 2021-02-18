@@ -1,18 +1,23 @@
 package ru.sooslick.royale;
 
-public class SquadInvite {
+import org.bukkit.entity.Player;
 
-    private RoyalePlayer invitedPlayer;
-    private RoyaleSquad targetSquad;
+public class SquadInvite {
+    private final Player invitedPlayer;
+    private final RoyaleSquad targetSquad;
+
     private int lifetime;
 
-    public SquadInvite(RoyalePlayer p, RoyaleSquad s) {
+    //todo invite type: invite / request
+
+    public SquadInvite(Player p, RoyaleSquad s) {
         invitedPlayer = p;
         targetSquad = s;
         lifetime = 30;
+        invitedPlayer.sendMessage(String.format(RoyaleMessages.SQUAD_INCOMING_INVITE, s.getName()));
     }
 
-    public RoyalePlayer getPlayer() {
+    public Player getPlayer() {
         return invitedPlayer;
     }
 
@@ -27,5 +32,4 @@ public class SquadInvite {
     public void tick() {
         lifetime--;
     }
-
 }
