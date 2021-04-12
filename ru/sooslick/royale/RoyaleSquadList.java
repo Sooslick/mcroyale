@@ -52,6 +52,8 @@ public class RoyaleSquadList {
     }
 
     public RoyaleSquad getSquad(String name) {
+        if (name == null)
+            return null;
         return squads.stream().filter(s -> s.getName().equalsIgnoreCase(name)).findFirst().orElse(null);
     }
 
@@ -71,23 +73,35 @@ public class RoyaleSquadList {
         squads.add(new RoyaleSquad(name, new RoyalePlayer(leader)));
     }
 
-    public boolean invitePlayer(RoyaleSquad s, Player p) {
+    public boolean invitePlayer(RoyaleSquad targetSquad, Player invitedPlayer) {
         try {
-            getInvite(s, p);
+            getInvite(targetSquad, invitedPlayer);
             return false;
         } catch (SquadInviteException e) {
-            return invites.add(new SquadInvite(p, s));
+            return invites.add(new SquadInvite(invitedPlayer, targetSquad, SquadInvite.Type.INVITE));
+        }
+    }
+
+    public boolean joinRequest(RoyaleSquad targetSquad, Player invitedPlayer) {
+        try {
+            getRequest(targetSquad, invitedPlayer);
+            return false;
+        } catch (SquadInviteException e) {
+            return invites.add(new SquadInvite(invitedPlayer, targetSquad, SquadInvite.Type.REQUEST));
         }
     }
 
     public void inviteAccept(SquadInvite inv) {
-        inv.getSquad().addPlayer(inv.getPlayer());
-        inviteDeactivate(inv);
-        //todo messages
-    }
-
-    public void inviteDecline(SquadInvite inv) {
-        //todo messages
+        RoyaleSquad squad = inv.getSquad();
+        Player invPlayer = inv.getPlayer();
+        //todo check squad still alive
+        if (squad.hasSlot()) {
+            squad.addPlayer(invPlayer);
+            squad.sendMessage(null, String.format(RoyaleMessages.SQUAD_JOINED, invPlayer));
+        } else {
+            invPlayer.sendMessage(RoyaleMessages.SQUAD_IS_FULL);
+            squad.getLeader().getPlayer().sendMessage(String.format(RoyaleMessages.SQUAD_FULL_NOTIFICATION, invPlayer.getName()));
+        }
         inviteDeactivate(inv);
     }
 
@@ -95,45 +109,59 @@ public class RoyaleSquadList {
         invites.remove(inv);
     }
 
-    public void inviteTimeout(SquadInvite inv) {
-        inviteDeactivate(inv);
-        //todo messages to player //invite accept used this method
-        //todo messages to console
-    }
-
-    //todo stream
-    public void inviteTick() {
-        for (SquadInvite i : invites) {
-            i.tick();
-            if (i.getLifetime() <= 0) {
-                inviteTimeout(i);
-            }
-        }
-    }
-
     public SquadInvite getInviteByPlayer(Player p) throws SquadInviteException {
-        List<SquadInvite> invs = invites.stream().filter(i -> i.getPlayer().equals(p)).collect(Collectors.toList());
+        List<SquadInvite> invs = getInvitesByPlayer(p);
         switch (invs.size()) {
             case 0:
-                throw new SquadInviteException(RoyaleMessages.SQUAD_INVITE_NOT_FOUND);
+                throw new SquadInviteNotFoundException();
             case 1:
                 return invs.get(0);
             default:
-                throw new SquadInviteException(RoyaleMessages.SQUAD_MULTIPLE_INVITES);
+                throw new SquadMultipleInvitesException();
         }
     }
 
-    public SquadInvite getInvite(RoyaleSquad squad, Player p) throws SquadInviteException {
+    public List<SquadInvite> getInvitesByPlayer(Player p) {
+        return invites.stream()
+                .filter(i -> i.getPlayer().equals(p) && i.getType() == SquadInvite.Type.INVITE)
+                .collect(Collectors.toList());
+    }
+
+    public SquadInvite getInvite(RoyaleSquad squad, Player p) throws SquadInviteNotFoundException {
         if (squad == null)
-            throw new SquadInviteException(RoyaleMessages.SQUAD_NOT_FOUND);
-        return invites.stream().filter(i -> i.getPlayer().equals(p) && i.getSquad().equals(squad)).findFirst()
-                .orElseThrow(() -> new SquadInviteException(RoyaleMessages.SQUAD_INVITE_NOT_FOUND));
+            throw new SquadInviteNotFoundException();
+        return invites.stream()
+                .filter(i -> i.getPlayer().equals(p) && i.getSquad().equals(squad) && i.getType() == SquadInvite.Type.INVITE)
+                .findFirst()
+                .orElseThrow(SquadInviteNotFoundException::new);
     }
 
-    public ArrayList<SquadInvite> getInvites() {
-        return invites;
+    public SquadInvite getRequest(RoyaleSquad squad, Player p) throws SquadInviteNotFoundException {
+        if (squad == null)
+            throw new SquadInviteNotFoundException();
+        return invites.stream()
+                .filter(i -> i.getPlayer().equals(p) && i.getSquad().equals(squad) && i.getType() == SquadInvite.Type.REQUEST)
+                .findFirst()
+                .orElseThrow(SquadInviteNotFoundException::new);
     }
 
-    //todo: request feature
+    public List<SquadInvite> getRequestsBySquad(RoyaleSquad squad) {
+        return invites.stream()
+                .filter(i -> i.getSquad().equals(squad) && i.getType() == SquadInvite.Type.REQUEST)
+                .collect(Collectors.toList());
+    }
 
+    public SquadInvite getRequestBySquad(RoyaleSquad squad) throws SquadInviteException {
+        List<SquadInvite> invs = getRequestsBySquad(squad);
+        switch (invs.size()) {
+            case 0:
+                throw new SquadInviteNotFoundException();
+            case 1:
+                return invs.get(0);
+            default:
+                throw new SquadMultipleInvitesException();
+        }
+    }
+
+    //todo copypaste refactoring
 }

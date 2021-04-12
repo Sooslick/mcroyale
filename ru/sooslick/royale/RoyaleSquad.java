@@ -4,21 +4,26 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
+import ru.sooslick.royale.config.LobbyConfig;
 
 import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class RoyaleSquad {
+    private static final String TAG_TEMPLATE = "§7§i[Team] %s: ";
+
     static int maxMembers;
     static Scoreboard sb;   //todo move to SquadList or Royale, static import
+
+    boolean allowRequest;
+    boolean allowInvite;
+    boolean allowAutobalance;
 
     private String name;
     private RoyalePlayer leader;
     private List<RoyalePlayer> playerList;
     private ItemStack teamMap;
-    private boolean allowRequest;
-    private boolean allowAutobalance;
     private Team team;
 
     //todo refactor RoyalePlayers args
@@ -29,6 +34,7 @@ public class RoyaleSquad {
         playerList.add(leader);
         //todo copy leader settings
         allowRequest = true;
+        allowInvite = true;
         allowAutobalance = true;
         //todo create scoreboard
         team = sb.registerNewTeam(name);
@@ -61,10 +67,16 @@ public class RoyaleSquad {
         }
     }
 
-    public void rmPlayer(RoyalePlayer p) {
-        if (!leader.equals(p)) {
-            playerList.remove(p);
-        }
+    public boolean rmPlayer(RoyalePlayer p) {
+        if (leader.equals(p))
+            return false;
+        playerList.remove(p);
+        p.getPlayer().sendMessage(RoyaleMessages.SQUAD_KICKED_NOTIFICATION);
+        return true;
+    }
+
+    public RoyalePlayer getLeader() {
+        return leader;
     }
 
     public int getPlayersCount() {
@@ -81,23 +93,30 @@ public class RoyaleSquad {
         return a;
     }
 
+    public boolean hasSlot() {
+        return getPlayersCount() < LobbyConfig.squadMaxMembers;
+    }
+
     public void setRestriction(String param, boolean b) {
         switch (param) {
             case "request":
                 allowRequest = b;
-                break;
+                return;
+            case "invite":
+                allowInvite = b;
+                return;
             case "balance":
                 allowAutobalance = b;
-                break;
+                return;
             default:
                 //todo say gav tяф
         }
     }
 
     public void sendMessage(RoyalePlayer p, String msg) {
-        StringBuilder str = new StringBuilder().append("§7§i[Team] ").append(p.getName()).append(": ").append(msg);
+        String tagline = p == null ? "" : String.format(TAG_TEMPLATE, p.getName());
         for (RoyalePlayer rp : playerList) {
-            rp.getPlayer().sendMessage(str.toString());
+            rp.getPlayer().sendMessage(tagline + msg);
         }
     }
 

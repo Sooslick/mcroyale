@@ -5,16 +5,24 @@ import org.bukkit.entity.Player;
 public class SquadInvite {
     private final Player invitedPlayer;
     private final RoyaleSquad targetSquad;
+    private final Type type;
 
-    private int lifetime;
+    public SquadInvite(Player invitedPlayer, RoyaleSquad targetSquad, Type type) {
+        this.invitedPlayer = invitedPlayer;
+        this.targetSquad = targetSquad;
+        this.type = type;
 
-    //todo invite type: invite / request
-
-    public SquadInvite(Player p, RoyaleSquad s) {
-        invitedPlayer = p;
-        targetSquad = s;
-        lifetime = 30;
-        invitedPlayer.sendMessage(String.format(RoyaleMessages.SQUAD_INCOMING_INVITE, s.getName()));
+        if (type == Type.INVITE) {
+            if (RoyaleSquadList.instance.getInvitesByPlayer(invitedPlayer).isEmpty())
+                invitedPlayer.sendMessage(String.format(RoyaleMessages.SQUAD_INCOMING_INVITE, targetSquad.getName()));
+            else
+                invitedPlayer.sendMessage(String.format(RoyaleMessages.SQUAD_INCOMING_INVITES, targetSquad.getName()));
+        } else {
+            if (RoyaleSquadList.instance.getRequestsBySquad(targetSquad).isEmpty())
+                invitedPlayer.sendMessage(String.format(RoyaleMessages.SQUAD_INCOMING_REQUEST, invitedPlayer.getName()));
+            else
+                invitedPlayer.sendMessage(String.format(RoyaleMessages.SQUAD_INCOMING_REQUESTS, invitedPlayer.getName()));
+        }
     }
 
     public Player getPlayer() {
@@ -25,11 +33,12 @@ public class SquadInvite {
         return targetSquad;
     }
 
-    public int getLifetime() {
-        return lifetime;
+    public Type getType() {
+        return type;
     }
 
-    public void tick() {
-        lifetime--;
+    public enum Type {
+        INVITE,
+        REQUEST
     }
 }
