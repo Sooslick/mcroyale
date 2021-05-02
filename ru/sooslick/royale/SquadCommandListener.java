@@ -166,18 +166,31 @@ public class SquadCommandListener implements CommandExecutor {
                     player.sendMessage(RoyaleMessages.SQUAD_NOT_LEADER);
                     return true;
                 }
-                Optional<RoyalePlayer> kick = squad.getPlayers().stream()
-                        .filter(rp -> rp.getName().equalsIgnoreCase(args[1]))
-                        .findFirst();
-                if (!kick.isPresent()) {
-                    player.sendMessage(RoyaleMessages.SQUAD_PLAYER_NOT_MEMBER);
+                Player victim = Bukkit.getPlayer(args[1]);
+                if (victim == null) {
+                    sender.sendMessage(RoyaleMessages.PLAYER_NOT_FOUND);
                     return true;
                 }
-                boolean kicked = squad.rmPlayer(kick.get());
+                boolean kicked = squad.rmPlayer(squad.getRoyalePlayer(victim));
                 if (kicked)
                     player.sendMessage(String.format(RoyaleMessages.SQUAD_KICKED_PLAYER, args[1]));
                 else
                     player.sendMessage(RoyaleMessages.SQUAD_KICKED_YOURSELF);
+                return true;
+            case "leave":
+                if (!(sender instanceof Player)) {
+                    sender.sendMessage(RoyaleMessages.CONSOLE_CANNOT);
+                    return true;
+                }
+                player = (Player) sender;
+                squad = squadList.getSquadByPlayer(player);
+                if (squad == null) {
+                    player.sendMessage(RoyaleMessages.SQUAD_NOT_MEMBER);
+                    return true;
+                }
+                boolean left = squad.rmPlayer(squad.getRoyalePlayer(player));
+                if (left)
+                    squad.sendMessage(null, String.format(RoyaleMessages.SQUAD_PLAYER_LEFT, player.getName()));
                 return true;
         }
         return true;

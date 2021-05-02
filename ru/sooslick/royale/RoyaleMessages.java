@@ -22,6 +22,7 @@ public class RoyaleMessages {
     public static final String SQUAD_NOT_FOUND = "§cSquad not found";
     public static final String SQUAD_NOT_LEADER = "§cOnly squad leader can do this";
     public static final String SQUAD_NOT_MEMBER = "§cOnly squad members can do this";
+    public static final String SQUAD_PLAYER_LEFT = "§cPlayer %s left the squad";
     public static final String SQUAD_PLAYER_LIST = "§eMembers of team %s:\n§6%s";
     public static final String SQUAD_PLAYER_NOT_MEMBER = "§cPlayer is not member of your squad";
     public static final String SQUAD_PRIVATE = "§cThis squad doesn't accept any join requests";

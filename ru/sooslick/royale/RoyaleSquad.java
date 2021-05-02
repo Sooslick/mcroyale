@@ -67,12 +67,21 @@ public class RoyaleSquad {
         }
     }
 
+    //todo rmReason
     public boolean rmPlayer(RoyalePlayer p) {
-        if (leader.equals(p))
+        if (p == null || leader.equals(p))
             return false;
         playerList.remove(p);
         p.getPlayer().sendMessage(RoyaleMessages.SQUAD_KICKED_NOTIFICATION);
         return true;
+    }
+
+    //todo rework method without stream usage. Use global datamap Player <-> RoyalePlayer
+    public RoyalePlayer getRoyalePlayer(Player p) {
+        return playerList.stream()
+                .filter(rp -> rp.getName().equalsIgnoreCase(p.getName()))
+                .findFirst()
+                .orElse(null);
     }
 
     public RoyalePlayer getLeader() {
