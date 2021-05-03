@@ -177,6 +177,7 @@ public class SquadCommandListener implements CommandExecutor {
                 else
                     player.sendMessage(RoyaleMessages.SQUAD_KICKED_YOURSELF);
                 return true;
+
             case "leave":
                 if (!(sender instanceof Player)) {
                     sender.sendMessage(RoyaleMessages.CONSOLE_CANNOT);
@@ -191,6 +192,28 @@ public class SquadCommandListener implements CommandExecutor {
                 boolean left = squad.rmPlayer(squad.getRoyalePlayer(player));
                 if (left)
                     squad.sendMessage(null, String.format(RoyaleMessages.SQUAD_PLAYER_LEFT, player.getName()));
+                else
+                    sender.sendMessage(RoyaleMessages.SQUAD_KICKED_YOURSELF);
+                return true;
+
+            case "disband":
+                if (!(sender instanceof Player)) {
+                    sender.sendMessage(RoyaleMessages.CONSOLE_CANNOT);
+                    return true;
+                }
+                player = (Player) sender;
+                squad = squadList.getSquadByPlayer(player);
+                if (squad == null) {
+                    player.sendMessage(RoyaleMessages.SQUAD_NOT_MEMBER);
+                    return true;
+                }
+                leader = squad.getLeader();
+                if (!leader.getPlayer().equals(player)) {
+                    player.sendMessage(RoyaleMessages.SQUAD_NOT_LEADER);
+                    return true;
+                }
+                squad.sendMessage(null, RoyaleMessages.SQUAD_DISBAND);
+                squadList.disbandSquad(squad);
                 return true;
         }
         return true;

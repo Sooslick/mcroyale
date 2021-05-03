@@ -73,6 +73,10 @@ public class RoyaleSquadList {
         squads.add(new RoyaleSquad(name, new RoyalePlayer(leader)));
     }
 
+    public void disbandSquad(RoyaleSquad squad) {
+        squads.remove(squad);
+    }
+
     public boolean invitePlayer(RoyaleSquad targetSquad, Player invitedPlayer) {
         try {
             getInvite(targetSquad, invitedPlayer);

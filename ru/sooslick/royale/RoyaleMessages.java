@@ -3,6 +3,7 @@ package ru.sooslick.royale;
 public class RoyaleMessages {
     public static final String CONSOLE_CANNOT = "§cConsole cannot do this";
     public static final String PLAYER_NOT_FOUND = "§ePlayer not found";
+    public static final String SQUAD_DISBAND = "§cYour squad has been disbanded";
     public static final String SQUAD_FULL_NOTIFICATION = "§7Player %s tried to join the squad by invite, but your squad is full";
     public static final String SQUAD_INVITE_EXISTS = "§cYou have already sent the invite";
     public static final String SQUAD_INVITED = "§eInvite sent";
