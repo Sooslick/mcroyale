@@ -27,5 +27,7 @@ public class RoyaleMessages {
     public static final String SQUAD_PLAYER_LIST = "§eMembers of team %s:\n§6%s";
     public static final String SQUAD_PLAYER_NOT_MEMBER = "§cPlayer is not member of your squad";
     public static final String SQUAD_PRIVATE = "§cThis squad doesn't accept any join requests";
+    public static final String SQUAD_RENAMED = "§7Squad was renamed to §6%s";
     public static final String SQUAD_REQUESTED = "§eRequest sent";
+    public static final String TEAMSAY_ERROR = "§cCannot send message to team §7(System component not loaded)";
 }

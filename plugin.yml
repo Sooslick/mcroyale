@@ -17,6 +17,10 @@ commands:
   squad:
     description: manages player's squads
     usage: /squad [command]
+  teamsay:
+    description: send message to squad members
+    usage: /teamsay <message>
+    aliases: ts
   rlconfig:
     description: manage BattleRoyale configuration
     usage: /rlconfig

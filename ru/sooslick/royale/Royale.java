@@ -29,6 +29,7 @@ public class Royale extends JavaPlugin {
         //getServer().getPluginManager().registerEvents(new EventProcessor(this), this);
         //getCommand("royale").setExecutor(cp);
         getCommand("squad").setExecutor(new SquadCommandListener());
+        getCommand("teamsay").setExecutor(new TeamSayCommandListener());
         //getCommand("zone").setExecutor(cp);
         //getCommand("votestart").setExecutor(cp);
     }

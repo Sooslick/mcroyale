@@ -6,18 +6,18 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-import java.util.Optional;
-
 public class SquadCommandListener implements CommandExecutor {
     private static final String SQUAD_INVITE_USAGE = "§6/squad invite <player name>";
     private static final String SQUAD_KICK_USAGE = "§6/squad kick <player name>";
+    private static final String SQUAD_RENAME_USAGE = "§6/squad rename <new name>";
     private static final String SQUAD_REQUEST_USAGE = "§6/squad view <squad name>";
+    private static final String SQUAD_SUBCOMMANDS = "§6list | view | create | invite | accept | request | kick | leave | disband | rename | config | say";
     private static final String SQUAD_VIEW_USAGE = "§6/squad view <squad name>";
 
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
         if (args.length == 0) {
-            //todo send message
+            sender.sendMessage(SQUAD_SUBCOMMANDS);
             return true;
         }
         RoyaleSquadList squadList = RoyaleSquadList.instance;
@@ -214,6 +214,38 @@ public class SquadCommandListener implements CommandExecutor {
                 }
                 squad.sendMessage(null, RoyaleMessages.SQUAD_DISBAND);
                 squadList.disbandSquad(squad);
+                return true;
+
+            case "rename":
+                if (!(sender instanceof Player)) {
+                    sender.sendMessage(RoyaleMessages.CONSOLE_CANNOT);
+                    return true;
+                }
+                player = (Player) sender;
+                squad = squadList.getSquadByPlayer(player);
+                if (squad == null) {
+                    player.sendMessage(RoyaleMessages.SQUAD_NOT_MEMBER);
+                    return true;
+                }
+                leader = squad.getLeader();
+                if (!leader.getPlayer().equals(player)) {
+                    player.sendMessage(RoyaleMessages.SQUAD_NOT_LEADER);
+                    return true;
+                }
+                if (args.length <= 1) {
+                    sender.sendMessage(SQUAD_RENAME_USAGE);
+                    return true;
+                }
+                squad.setName(args[1]);
+                squad.sendMessage(null, String.format(RoyaleMessages.SQUAD_RENAMED, squad.getName()));
+                return true;
+
+            case "config":
+
+                return true;
+
+            case "say":
+                TeamSayCommandListener.execute(sender, args);
                 return true;
         }
         return true;
