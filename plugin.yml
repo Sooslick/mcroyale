@@ -16,6 +16,7 @@ commands:
     usage: /votestart
   squad:
     description: manages player's squads
+    aliases: sq
     usage: /squad [command]
   teamsay:
     description: send message to squad members

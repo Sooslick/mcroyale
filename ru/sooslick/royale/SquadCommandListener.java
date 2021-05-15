@@ -7,11 +7,12 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 public class SquadCommandListener implements CommandExecutor {
+    private static final String SQUAD_CONFIG_USAGE = "§6/squad config <autobalance | invite | request> <allow | deny>";
     private static final String SQUAD_INVITE_USAGE = "§6/squad invite <player name>";
     private static final String SQUAD_KICK_USAGE = "§6/squad kick <player name>";
     private static final String SQUAD_RENAME_USAGE = "§6/squad rename <new name>";
     private static final String SQUAD_REQUEST_USAGE = "§6/squad view <squad name>";
-    private static final String SQUAD_SUBCOMMANDS = "§6list | view | create | invite | accept | request | kick | leave | disband | rename | config | say";
+    private static final String SQUAD_SUBCOMMANDS = "§6/squad <list | view | create | invite | accept | request | kick | leave | disband | rename | config | say>";
     private static final String SQUAD_VIEW_USAGE = "§6/squad view <squad name>";
 
     @Override
@@ -70,7 +71,7 @@ public class SquadCommandListener implements CommandExecutor {
                     player.sendMessage(RoyaleMessages.SQUAD_NOT_MEMBER);
                     return true;
                 }
-                if (!squad.allowInvite && !squad.getLeader().getPlayer().equals(player)) {
+                if (!squad.getSquadParam(RoyalePlayer.ALLOW_INVITE) && !squad.getLeader().getPlayer().equals(player)) {
                     player.sendMessage(RoyaleMessages.SQUAD_NOT_LEADER);
                     return true;
                 }
@@ -136,7 +137,7 @@ public class SquadCommandListener implements CommandExecutor {
                     SquadInvite invite = squadList.getInvite(squad, player);
                     squadList.inviteAccept(invite);
                 } catch (SquadInviteNotFoundException e) {
-                    if (squad.allowRequest) {
+                    if (squad.getSquadParam(RoyalePlayer.ALLOW_REQUEST)) {
                         player.sendMessage(RoyaleMessages.SQUAD_REQUESTED);
                         squad.sendMessage(null, String.format(RoyaleMessages.SQUAD_INCOMING_REQUEST, player));
                         squadList.joinRequest(squad, player);
@@ -241,7 +242,50 @@ public class SquadCommandListener implements CommandExecutor {
                 return true;
 
             case "config":
-
+                if (!(sender instanceof Player)) {
+                    sender.sendMessage(RoyaleMessages.CONSOLE_CANNOT);
+                    return true;
+                }
+                player = (Player) sender;
+                squad = squadList.getSquadByPlayer(player);
+                if (squad == null) {
+                    player.sendMessage(RoyaleMessages.SQUAD_NOT_MEMBER);
+                    return true;
+                }
+                leader = squad.getLeader();
+                if (!leader.getPlayer().equals(player)) {
+                    player.sendMessage(RoyaleMessages.SQUAD_NOT_LEADER);
+                    return true;
+                }
+                if (args.length <= 1) {
+                    sender.sendMessage(SQUAD_CONFIG_USAGE);
+                    return true;
+                }
+                if (args.length <= 2) {
+                    switch (args[1].toLowerCase()) {
+                        case RoyalePlayer.ALLOW_BALANCE:
+                            sender.sendMessage(String.format(RoyaleMessages.SQUAD_CONFIG_AUTOBALANCE, squad.getSquadParam(RoyalePlayer.ALLOW_BALANCE)));
+                            return true;
+                        case RoyalePlayer.ALLOW_INVITE:
+                            sender.sendMessage(String.format(RoyaleMessages.SQUAD_CONFIG_INVITE, squad.getSquadParam(RoyalePlayer.ALLOW_INVITE)));
+                            return true;
+                        case RoyalePlayer.ALLOW_REQUEST:
+                            sender.sendMessage(String.format(RoyaleMessages.SQUAD_CONFIG_REQUEST, squad.getSquadParam(RoyalePlayer.ALLOW_REQUEST)));
+                            return true;
+                        default:
+                            sender.sendMessage(SQUAD_CONFIG_USAGE);
+                    }
+                    return true;
+                }
+                Boolean value = parsePermission(args[2]);
+                if (value == null) {
+                    sender.sendMessage(SQUAD_CONFIG_USAGE);
+                    return true;
+                }
+                if (squad.setRestriction(args[1], value))
+                    sender.sendMessage(RoyaleMessages.SQUAD_CONFIG_SET);
+                else
+                    sender.sendMessage(SQUAD_CONFIG_USAGE);
                 return true;
 
             case "say":
@@ -270,7 +314,7 @@ public class SquadCommandListener implements CommandExecutor {
 
     private void acceptRequests(Player accepter, RoyaleSquad squad, String playerName) {
         RoyaleSquadList squadList = RoyaleSquadList.instance;
-        if (!squad.allowInvite && accepter != squad.getLeader().getPlayer()) {
+        if (!squad.getSquadParam(RoyalePlayer.ALLOW_INVITE) && accepter != squad.getLeader().getPlayer()) {
             accepter.sendMessage(RoyaleMessages.SQUAD_NOT_LEADER);
         }
         try {
@@ -280,6 +324,14 @@ public class SquadCommandListener implements CommandExecutor {
             accepter.sendMessage(RoyaleMessages.SQUAD_MULTIPLE_INVITES);
         } catch (SquadInviteException e) {
             accepter.sendMessage(RoyaleMessages.SQUAD_INVITE_NOT_FOUND);
+        }
+    }
+
+    private Boolean parsePermission(String value) {
+        switch (value.toLowerCase()) {
+            case "allow": return Boolean.TRUE;
+            case "deny": return Boolean.FALSE;
+            default: return null;
         }
     }
 }

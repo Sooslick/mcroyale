@@ -1,6 +1,5 @@
 package ru.sooslick.royale;
 
-import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.configuration.InvalidConfigurationException;
@@ -10,12 +9,17 @@ import org.bukkit.entity.Player;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 import static ru.sooslick.royale.Royale.R;
 
 public class RoyalePlayer {
+    public static final String ALLOW_REQUEST = "request";
+    public static final String ALLOW_INVITE = "invite";
+    public static final String ALLOW_BALANCE = "balance";
 
-    private static final String extension = ".yml";
+    private static final String YML_EXTENSION = ".yml";
 
     //general royale fields
     private Player player;
@@ -35,6 +39,8 @@ public class RoyalePlayer {
     private int deadbyMob;
     private int deadbyEnv;
 
+    private Map<String, Boolean> squadParams = new HashMap<>();
+
     public RoyalePlayer(Player p) {
         player = p;
         name = p.getName();
@@ -42,6 +48,10 @@ public class RoyalePlayer {
         alive = false;
         alertTimer = 0;
         readStat();
+        //todo get default squad settings from profile
+        squadParams.put(ALLOW_BALANCE, Boolean.TRUE);
+        squadParams.put(ALLOW_REQUEST, Boolean.TRUE);
+        squadParams.put(ALLOW_INVITE, Boolean.TRUE);
     }
 
     public void prepare() {
@@ -105,10 +115,22 @@ public class RoyalePlayer {
         alertTimer = t;
     }
 
+    public Boolean getSquadParam(String param) {
+        return squadParams.get(param);
+    }
+
+    public boolean setSquadParam(String param, Boolean value) {
+        if (squadParams.get(param) != null) {
+            squadParams.put(param, value);
+            return true;
+        }
+        return false;
+    }
+
     public void readStat() {
         try {
             YamlConfiguration f = new YamlConfiguration();
-            f.load(R.getDataFolder() + File.separator + name + extension);
+            f.load(R.getDataFolder() + File.separator + name + YML_EXTENSION);
             gamesTotal = f.getInt("gamesTotal", 0);
             gamesWon = f.getInt("gamesWon", 0);
             kills = f.getInt("kills", 0);
@@ -134,7 +156,7 @@ public class RoyalePlayer {
         f.set("deadbyMob", deadbyMob);
         f.set("deadbyEnv", deadbyEnv);
         try {
-            f.save(R.getDataFolder() + File.separator + name + extension);
+            f.save(R.getDataFolder() + File.separator + name + YML_EXTENSION);
         } catch (IOException e) {
             RoyaleUtil.logInfo(RoyaleMessages.playerWriteStatError);
         }

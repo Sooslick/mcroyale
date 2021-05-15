@@ -16,10 +16,6 @@ public class RoyaleSquad {
     static int maxMembers;
     static Scoreboard sb;   //todo move to SquadList or Royale, static import
 
-    boolean allowRequest;
-    boolean allowInvite;
-    boolean allowAutobalance;
-
     private String name;
     private RoyalePlayer leader;
     private List<RoyalePlayer> playerList;
@@ -32,10 +28,6 @@ public class RoyaleSquad {
         this.leader = leader;
         playerList = new LinkedList<>();
         playerList.add(leader);
-        //todo copy leader settings
-        allowRequest = true;
-        allowInvite = true;
-        allowAutobalance = true;
         //todo create scoreboard
         team = sb.registerNewTeam(name);
     }
@@ -88,6 +80,10 @@ public class RoyaleSquad {
         return leader;
     }
 
+    public Boolean getSquadParam(String param) {
+        return leader.getSquadParam(param);
+    }
+
     public int getPlayersCount() {
         return playerList.size();
     }
@@ -106,20 +102,8 @@ public class RoyaleSquad {
         return getPlayersCount() < LobbyConfig.squadMaxMembers;
     }
 
-    public void setRestriction(String param, boolean b) {
-        switch (param) {
-            case "request":
-                allowRequest = b;
-                return;
-            case "invite":
-                allowInvite = b;
-                return;
-            case "balance":
-                allowAutobalance = b;
-                return;
-            default:
-                //todo say gav tяф
-        }
+    public boolean setRestriction(String param, Boolean b) {
+        return leader.setSquadParam(param, b);
     }
 
     public void sendMessage(RoyalePlayer p, String msg) {
