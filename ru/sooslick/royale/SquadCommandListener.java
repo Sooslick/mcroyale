@@ -172,7 +172,7 @@ public class SquadCommandListener implements CommandExecutor {
                     sender.sendMessage(RoyaleMessages.PLAYER_NOT_FOUND);
                     return true;
                 }
-                boolean kicked = squad.rmPlayer(squad.getRoyalePlayer(victim));
+                boolean kicked = squad.rmPlayer(RoyalePlayerList.get(victim));
                 if (kicked)
                     player.sendMessage(String.format(RoyaleMessages.SQUAD_KICKED_PLAYER, args[1]));
                 else
@@ -190,7 +190,7 @@ public class SquadCommandListener implements CommandExecutor {
                     player.sendMessage(RoyaleMessages.SQUAD_NOT_MEMBER);
                     return true;
                 }
-                boolean left = squad.rmPlayer(squad.getRoyalePlayer(player));
+                boolean left = squad.rmPlayer(RoyalePlayerList.get(player));
                 if (left)
                     squad.sendMessage(null, String.format(RoyaleMessages.SQUAD_PLAYER_LEFT, player.getName()));
                 else

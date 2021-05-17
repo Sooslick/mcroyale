@@ -37,7 +37,7 @@ public class EventProcessor implements Listener {
         }
 
         //RoyalePlayer not found - just join as spectator
-        rp = new RoyalePlayer(p);
+        rp = new RoyalePlayer(p);   //todo do not create instances, use RoyalePlayerList
         players.add(rp);
         rp.prepare();
         //todo: messages

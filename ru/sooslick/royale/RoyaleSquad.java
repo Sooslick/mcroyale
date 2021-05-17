@@ -16,11 +16,12 @@ public class RoyaleSquad {
     static int maxMembers;
     static Scoreboard sb;   //todo move to SquadList or Royale, static import
 
+    private final RoyalePlayer leader;
+    private final List<RoyalePlayer> playerList;
+    private final Team team;
+
     private String name;
-    private RoyalePlayer leader;
-    private List<RoyalePlayer> playerList;
     private ItemStack teamMap;
-    private Team team;
 
     //todo refactor RoyalePlayers args
     public RoyaleSquad(String name, RoyalePlayer leader) {
@@ -55,7 +56,7 @@ public class RoyaleSquad {
 
     public void addPlayer(Player p) {
         if ((getPlayersCount() < maxMembers) && !hasPlayer(p)) {
-            playerList.add(new RoyalePlayer(p));
+            playerList.add(RoyalePlayerList.get(p));
         }
     }
 
@@ -106,12 +107,10 @@ public class RoyaleSquad {
         return leader.setSquadParam(param, b);
     }
 
-    public void sendMessage(RoyalePlayer p, String msg) {
-        String tagline = p == null ? "" : String.format(TAG_TEMPLATE, p.getName());
+    public void sendMessage(String tag, String msg) {
+        String tagline = tag == null ? "" : tag;
         for (RoyalePlayer rp : playerList) {
             rp.getPlayer().sendMessage(tagline + msg);
         }
     }
-
-    //todo: messages
 }

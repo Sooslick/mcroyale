@@ -70,7 +70,7 @@ public class RoyaleSquadList {
     }
 
     public void createSquad(String name, Player leader) {
-        squads.add(new RoyaleSquad(name, new RoyalePlayer(leader)));
+        squads.add(new RoyaleSquad(name, RoyalePlayerList.get(leader)));
     }
 
     public void disbandSquad(RoyaleSquad squad) {

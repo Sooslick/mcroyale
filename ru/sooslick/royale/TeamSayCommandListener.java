@@ -33,7 +33,7 @@ public class TeamSayCommandListener implements CommandExecutor {
             player.sendMessage(RoyaleMessages.SQUAD_NOT_MEMBER);
             return true;
         }
-        squad.sendMessage(squad.getRoyalePlayer(player), String.join(" ", strings));
+        squad.sendMessage(sender.getName(), String.join(" ", strings));
         return true;
     }
 }
