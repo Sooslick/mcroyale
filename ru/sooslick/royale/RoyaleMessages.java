@@ -2,7 +2,11 @@ package ru.sooslick.royale;
 
 public class RoyaleMessages {
     public static final String CONSOLE_CANNOT = "§cConsole cannot do this";
+    public static final String NO_PERMISSION = "§6You don't have permission";
     public static final String PLAYER_NOT_FOUND = "§ePlayer not found";
+    public static final String ROYALE_IS_RUNNING = "§cCannot do this because game is running";
+    public static final String ROYALE_OVERALL = "§6Minecraft Battle Royale";    //todo about + commands
+    public static final String ROYALE_SUBCOMMANDS = "§6";    //todo  commands
     public static final String SQUAD_CONFIG_AUTOBALANCE = "§eCan the game fill your squad with random members to balance teams? - %s";
     public static final String SQUAD_CONFIG_INVITE = "§eCan teammates invite player to your squad? - %s";
     public static final String SQUAD_CONFIG_REQUEST = "§eCan players request joining to your squad? - %s";
@@ -33,5 +37,8 @@ public class RoyaleMessages {
     public static final String SQUAD_PRIVATE = "§cThis squad doesn't accept any join requests";
     public static final String SQUAD_RENAMED = "§7Squad was renamed to §6%s";
     public static final String SQUAD_REQUESTED = "§eRequest sent";
-    public static final String TEAMSAY_ERROR = "§cCannot send message to team §7(System component not loaded)";
+    public static final String SYSTEM_ERROR = "§cCannot execute command §7(System component not loaded)";
+    public static final String VOTESTART = "§e%s voted to start!";
+    public static final String VOTESTART_TWICE = "§cYou already voted to start!";
+    public static final String VOTESTARTERS_COUNT = "§e%s / %s votes counted";
 }

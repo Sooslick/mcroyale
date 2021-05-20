@@ -1,9 +1,13 @@
-package ru.sooslick.royale;
+package ru.sooslick.royale.commandListener;
 
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import ru.sooslick.royale.RoyaleLogger;
+import ru.sooslick.royale.RoyaleMessages;
+import ru.sooslick.royale.RoyaleSquad;
+import ru.sooslick.royale.RoyaleSquadList;
 
 public class TeamSayCommandListener implements CommandExecutor {
     private static TeamSayCommandListener instance;
@@ -12,7 +16,7 @@ public class TeamSayCommandListener implements CommandExecutor {
         if (instance != null) {
             instance.onCommand(sender, null, null, args);
         } else {
-            sender.sendMessage(RoyaleMessages.TEAMSAY_ERROR);
+            sender.sendMessage(RoyaleMessages.SYSTEM_ERROR);
             RoyaleLogger.warn("TeamSayCommandListener is not registered");
         }
     }

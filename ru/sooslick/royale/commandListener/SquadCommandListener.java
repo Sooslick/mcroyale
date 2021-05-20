@@ -1,10 +1,11 @@
-package ru.sooslick.royale;
+package ru.sooslick.royale.commandListener;
 
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import ru.sooslick.royale.*;
 
 public class SquadCommandListener implements CommandExecutor {
     private static final String SQUAD_CONFIG_USAGE = "§6/squad config <autobalance | invite | request> <allow | deny>";
