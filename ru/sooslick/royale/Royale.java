@@ -3,6 +3,8 @@ package ru.sooslick.royale;
 import org.bukkit.Bukkit;
 import org.bukkit.WorldBorder;
 import org.bukkit.entity.Player;
+import org.bukkit.event.HandlerList;
+import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 import ru.sooslick.royale.commandListener.RoyaleCommandListener;
 import ru.sooslick.royale.commandListener.SquadCommandListener;
@@ -11,6 +13,7 @@ import ru.sooslick.royale.commandListener.VotestartCommandListener;
 import ru.sooslick.royale.config.LobbyConfig;
 import ru.sooslick.royale.config.RoyaleConfig;
 import ru.sooslick.royale.config.ZoneConfig;
+import ru.sooslick.royale.events.LobbyEvents;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -21,6 +24,7 @@ public class Royale extends JavaPlugin {
     private RoyaleSquadList squads;     //todo unused?
     private GameState gameState;
     private Set<RoyalePlayer> votestarters;
+    private Listener activeEvents;
 
     public static GameState getGameState() {
         return R.gameState;
@@ -55,6 +59,14 @@ public class Royale extends JavaPlugin {
         }
     }
 
+    public static void unvote(Player p) {
+        Set<RoyalePlayer> vs = R.votestarters;
+        if (vs.remove(RoyalePlayerList.get(p))) {
+            //todo if start timer not launched
+            Bukkit.broadcastMessage(String.format(RoyaleMessages.VOTESTARTERS_COUNT, vs.size(), LobbyConfig.lobbyMinVotestarters));
+        }
+    }
+
     @Override
     public void onEnable() {
         R = this;                                                       //todo: replace all Royale parameters to static import
@@ -66,10 +78,7 @@ public class Royale extends JavaPlugin {
         //init lobby
         changeGameState(GameState.LOBBY);
 
-        //register events
-        //todo: separate lobby & game listeners
-        //todo: separate command listeners
-        //getServer().getPluginManager().registerEvents(new EventProcessor(this), this);
+        //register commands
         getCommand("royale").setExecutor(new RoyaleCommandListener());
         getCommand("squad").setExecutor(new SquadCommandListener());
         getCommand("teamsay").setExecutor(new TeamSayCommandListener());
@@ -86,12 +95,21 @@ public class Royale extends JavaPlugin {
         gameState = newState;
         switch (gameState) {
             case LOBBY:
+                //init
                 reload();
                 squads = new RoyaleSquadList();
                 votestarters = new HashSet<>();
+
+                //unregister previous state events and add new listener
+                if (activeEvents != null)
+                    HandlerList.unregisterAll(activeEvents);
+                activeEvents = new LobbyEvents();
+                Bukkit.getPluginManager().registerEvents(activeEvents, this);
                 return;
+
             case GAME:
                 return;
+
             case POSTGAME:
         }
     }
