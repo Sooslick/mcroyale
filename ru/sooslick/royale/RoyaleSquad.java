@@ -27,6 +27,7 @@ public class RoyaleSquad {
     public RoyaleSquad(String name, RoyalePlayer leader) {
         this.name = name;
         this.leader = leader;
+        leader.setSquad(this);
         playerList = new LinkedList<>();
         playerList.add(leader);
         //todo create scoreboard
@@ -56,7 +57,9 @@ public class RoyaleSquad {
 
     public void addPlayer(Player p) {
         if ((getPlayersCount() < maxMembers) && !hasPlayer(p)) {
-            playerList.add(RoyalePlayerList.get(p));
+            RoyalePlayer rp = RoyalePlayerList.get(p);
+            playerList.add(rp);
+            rp.setSquad(this);
         }
     }
 
@@ -65,16 +68,9 @@ public class RoyaleSquad {
         if (p == null || leader.equals(p))
             return false;
         playerList.remove(p);
+        p.setSquad(null);
         p.getPlayer().sendMessage(RoyaleMessages.SQUAD_KICKED_NOTIFICATION);
         return true;
-    }
-
-    //todo rework method without stream usage. Use global datamap Player <-> RoyalePlayer
-    public RoyalePlayer getRoyalePlayer(Player p) {
-        return playerList.stream()
-                .filter(rp -> rp.getName().equalsIgnoreCase(p.getName()))
-                .findFirst()
-                .orElse(null);
     }
 
     public RoyalePlayer getLeader() {
@@ -89,14 +85,14 @@ public class RoyaleSquad {
         return playerList.size();
     }
 
-    public int getAlivesCount() {
-        int a = 0;
-        for (RoyalePlayer p : playerList) {
-            if (p.isAlive()) {
-                a++;
-            }
-        }
-        return a;
+    public boolean hasAlivePlayers() {
+        return getAlivesCount() > 0;
+    }
+
+    public long getAlivesCount() {
+        return playerList.stream()
+                .filter(RoyalePlayer::isAlive)
+                .count();
     }
 
     public boolean hasSlot() {

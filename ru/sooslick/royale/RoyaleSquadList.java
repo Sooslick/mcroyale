@@ -18,24 +18,16 @@ public class RoyaleSquadList {
         invites = new ArrayList<>();
     }
 
-    //todo stream
-    public int getAliveSquadsCount() {
-        int alives = 0;
-        for (RoyaleSquad s : squads) {
-            if (s.getAlivesCount() > 0) {
-                alives++;
-            }
-        }
-        return alives;
+    public long getAliveSquadsCount() {
+        return squads.stream()
+                .filter(RoyaleSquad::hasAlivePlayers)
+                .count();
     }
 
-    //todo stream
-    public int getAlivePlayersCount() {
-        int alives = 0;
-        for (RoyaleSquad s : squads) {
-            alives += s.getAlivesCount();
-        }
-        return alives;
+    public long getAlivePlayersCount() {
+        return squads.stream()
+                .mapToLong(RoyaleSquad::getAlivesCount)
+                .sum();
     }
 
     public int getSquadsCount() {
@@ -44,11 +36,9 @@ public class RoyaleSquadList {
 
     //todo stream
     public int getPlayersCount() {
-        int p = 0;
-        for (RoyaleSquad s : squads) {
-            p += s.getPlayersCount();
-        }
-        return p;
+        return squads.stream()
+                .mapToInt(RoyaleSquad::getPlayersCount)
+                .sum();
     }
 
     public RoyaleSquad getSquad(String name) {

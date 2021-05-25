@@ -6,10 +6,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
-import ru.sooslick.royale.commandListener.RoyaleCommandListener;
-import ru.sooslick.royale.commandListener.SquadCommandListener;
-import ru.sooslick.royale.commandListener.TeamSayCommandListener;
-import ru.sooslick.royale.commandListener.VotestartCommandListener;
+import ru.sooslick.royale.commandListener.*;
 import ru.sooslick.royale.config.LobbyConfig;
 import ru.sooslick.royale.config.RoyaleConfig;
 import ru.sooslick.royale.config.ZoneConfig;
@@ -82,8 +79,8 @@ public class Royale extends JavaPlugin {
         getCommand("royale").setExecutor(new RoyaleCommandListener());
         getCommand("squad").setExecutor(new SquadCommandListener());
         getCommand("teamsay").setExecutor(new TeamSayCommandListener());
-        //getCommand("zone").setExecutor(cp);
         getCommand("votestart").setExecutor(new VotestartCommandListener());
+        getCommand("zone").setExecutor(new ZoneCommandListener());
     }
 
     @Override

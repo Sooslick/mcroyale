@@ -3,14 +3,15 @@ package ru.sooslick.royale;
 public class RoyaleMessages {
     public static final String CONSOLE_CANNOT = "§cConsole cannot do this";
     public static final String NO_PERMISSION = "§6You don't have permission";
+    public static final String PLAYER_CONFIG_SET = "§eProperty changed";
     public static final String PLAYER_NOT_FOUND = "§ePlayer not found";
+    public static final String ROYALE_IS_NOT_RUNNING = "§cCannot do this because game is not running";
     public static final String ROYALE_IS_RUNNING = "§cCannot do this because game is running";
     public static final String ROYALE_OVERALL = "§6Minecraft Battle Royale";    //todo about + commands
     public static final String ROYALE_SUBCOMMANDS = "§6";    //todo  commands
     public static final String SQUAD_CONFIG_AUTOBALANCE = "§eCan the game fill your squad with random members to balance teams? - %s";
     public static final String SQUAD_CONFIG_INVITE = "§eCan teammates invite player to your squad? - %s";
     public static final String SQUAD_CONFIG_REQUEST = "§eCan players request joining to your squad? - %s";
-    public static final String SQUAD_CONFIG_SET = "§eSquad config changed";
     public static final String SQUAD_DISBAND = "§cYour squad has been disbanded";
     public static final String SQUAD_FULL_NOTIFICATION = "§7Player %s tried to join the squad by invite, but your squad is full";
     public static final String SQUAD_INVITE_EXISTS = "§cYou have already sent the invite";
@@ -41,4 +42,5 @@ public class RoyaleMessages {
     public static final String VOTESTART = "§e%s voted to start!";
     public static final String VOTESTART_TWICE = "§cYou already voted to start!";
     public static final String VOTESTARTERS_COUNT = "§e%s / %s votes counted";
+    public static final String ZONE_COMMAND_HELP = "§e";    //todo about command + subcommands
 }

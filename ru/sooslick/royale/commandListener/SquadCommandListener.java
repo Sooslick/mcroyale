@@ -284,7 +284,7 @@ public class SquadCommandListener implements CommandExecutor {
                     return true;
                 }
                 if (squad.setRestriction(args[1], value))
-                    sender.sendMessage(RoyaleMessages.SQUAD_CONFIG_SET);
+                    sender.sendMessage(RoyaleMessages.PLAYER_CONFIG_SET);
                 else
                     sender.sendMessage(SQUAD_CONFIG_USAGE);
                 return true;

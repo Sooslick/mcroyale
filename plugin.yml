@@ -22,6 +22,3 @@ commands:
     description: send message to squad members
     usage: /teamsay <message>
     aliases: ts
-  rlconfig:
-    description: manage BattleRoyale configuration
-    usage: /rlconfig
