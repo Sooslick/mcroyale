@@ -23,6 +23,9 @@ public class Royale extends JavaPlugin {
     private Set<RoyalePlayer> votestarters;
     private Listener activeEvents;
 
+    private int prestartTaskId = 0;
+    private int prestartTimer = 0;
+
     public static GameState getGameState() {
         return R.gameState;
     }
@@ -47,7 +50,7 @@ public class Royale extends JavaPlugin {
             int votes = vs.size();
             double percent = (double) votes / Bukkit.getOnlinePlayers().size();
             if ((votes >= LobbyConfig.lobbyMinVotestarters) || (percent >= LobbyConfig.lobbyMinVotestartersPercent)) {
-                //todo announce + launch start timer
+                R.prestart(false);
             } else {
                 Bukkit.broadcastMessage(String.format(RoyaleMessages.VOTESTARTERS_COUNT, votes, LobbyConfig.lobbyMinVotestarters));
             }
@@ -59,8 +62,8 @@ public class Royale extends JavaPlugin {
     public static void unvote(Player p) {
         Set<RoyalePlayer> vs = R.votestarters;
         if (vs.remove(RoyalePlayerList.get(p))) {
-            //todo if start timer not launched
-            Bukkit.broadcastMessage(String.format(RoyaleMessages.VOTESTARTERS_COUNT, vs.size(), LobbyConfig.lobbyMinVotestarters));
+            if (R.prestartTaskId == 0)
+                Bukkit.broadcastMessage(String.format(RoyaleMessages.VOTESTARTERS_COUNT, vs.size(), LobbyConfig.lobbyMinVotestarters));
         }
     }
 
@@ -96,6 +99,8 @@ public class Royale extends JavaPlugin {
                 reload();
                 squads = new RoyaleSquadList();
                 votestarters = new HashSet<>();
+                prestartTaskId = 0;
+                prestartTimer = 0;
 
                 //unregister previous state events and add new listener
                 if (activeEvents != null)
@@ -105,9 +110,26 @@ public class Royale extends JavaPlugin {
                 return;
 
             case GAME:
+                Bukkit.getScheduler().cancelTask(prestartTaskId);
+                HandlerList.unregisterAll(activeEvents);
                 return;
 
             case POSTGAME:
         }
+    }
+
+    public boolean prestart(boolean force) {
+        if (prestartTaskId != 0)
+            return false;
+        if (force)
+            prestartTimer = 60;
+        Bukkit.broadcastMessage(RoyaleMessages.ROYALE_PRESTART);
+        prestartTaskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(this, () -> {
+            if (++prestartTimer > 60)
+                changeGameState(GameState.GAME);
+            else if (prestartTimer % 10 == 0)
+                Bukkit.broadcastMessage(String.format(RoyaleMessages.ROYALE_PRESTART_TIMER, 60 - prestartTimer));
+        }, 1, 20);
+        return true;
     }
 }

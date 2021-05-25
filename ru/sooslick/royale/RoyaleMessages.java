@@ -8,6 +8,8 @@ public class RoyaleMessages {
     public static final String ROYALE_IS_NOT_RUNNING = "§cCannot do this because game is not running";
     public static final String ROYALE_IS_RUNNING = "§cCannot do this because game is running";
     public static final String ROYALE_OVERALL = "§6Minecraft Battle Royale";    //todo about + commands
+    public static final String ROYALE_PRESTART = "§eThe game will be started in 60 seconds!";
+    public static final String ROYALE_PRESTART_TIMER = "§e%s seconds to start";
     public static final String ROYALE_SUBCOMMANDS = "§6";    //todo  commands
     public static final String SQUAD_CONFIG_AUTOBALANCE = "§eCan the game fill your squad with random members to balance teams? - %s";
     public static final String SQUAD_CONFIG_INVITE = "§eCan teammates invite player to your squad? - %s";

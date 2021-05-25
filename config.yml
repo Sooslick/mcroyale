@@ -1,3 +1,5 @@
+# debug
+debugMode: false
 # lobby
 lobbyMinVotestarters: 3
 lobbyMinVotestartersPercent: 0.51
