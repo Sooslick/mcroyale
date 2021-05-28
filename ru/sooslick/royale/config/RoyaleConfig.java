@@ -2,6 +2,7 @@ package ru.sooslick.royale.config;
 
 import org.bukkit.configuration.file.FileConfiguration;
 import ru.sooslick.royale.Royale;
+import ru.sooslick.royale.RoyaleLogger;
 
 public class RoyaleConfig {
     public static boolean debugMode;
@@ -15,5 +16,6 @@ public class RoyaleConfig {
         AirdropConfig.readConfig(cfg);
 
         debugMode = cfg.getBoolean("debugMode", false);
+        RoyaleLogger.setDebugMode(debugMode);
     }
 }
