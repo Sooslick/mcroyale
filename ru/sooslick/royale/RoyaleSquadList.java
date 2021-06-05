@@ -1,6 +1,11 @@
 package ru.sooslick.royale;
 
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.scoreboard.Scoreboard;
+import org.bukkit.scoreboard.Team;
+import ru.sooslick.royale.config.LobbyConfig;
+import ru.sooslick.royale.util.TeamColorUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,6 +16,8 @@ public class RoyaleSquadList {
 
     private final ArrayList<RoyaleSquad> squads;
     private final ArrayList<SquadInvite> invites;
+
+    private Scoreboard sb;
 
     public RoyaleSquadList() {
         instance = this;
@@ -34,7 +41,6 @@ public class RoyaleSquadList {
         return squads.size();
     }
 
-    //todo stream
     public int getPlayersCount() {
         return squads.stream()
                 .mapToInt(RoyaleSquad::getPlayersCount)
@@ -154,6 +160,20 @@ public class RoyaleSquadList {
                 return invs.get(0);
             default:
                 throw new SquadMultipleInvitesException();
+        }
+    }
+
+    public void prepareScoreboard() {
+        sb = Bukkit.getScoreboardManager().getNewScoreboard();
+        for (RoyaleSquad squad : squads) {
+            Team team = sb.registerNewTeam(squad.getName());
+            team.setAllowFriendlyFire(LobbyConfig.squadFriendlyFireEnabled);
+            team.setOption(Team.Option.NAME_TAG_VISIBILITY, LobbyConfig.squadNametagVisiblity);
+            team.setColor(TeamColorUtil.getRandomColor());
+            for (RoyalePlayer rp : squad.getPlayers()) {
+                team.addEntry(rp.getName());
+            }
+            squad.setTeam(team);
         }
     }
 

@@ -2,7 +2,6 @@ package ru.sooslick.royale;
 
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 import ru.sooslick.royale.config.LobbyConfig;
 
@@ -14,24 +13,20 @@ public class RoyaleSquad {
     private static final String TAG_TEMPLATE = "§7§i[Team] %s: ";
 
     static int maxMembers;
-    static Scoreboard sb;   //todo move to SquadList or Royale, static import
 
     private final RoyalePlayer leader;
     private final List<RoyalePlayer> playerList;
-    private final Team team;
 
     private String name;
     private ItemStack teamMap;
+    private Team team;
 
-    //todo refactor RoyalePlayers args
     public RoyaleSquad(String name, RoyalePlayer leader) {
         this.name = name;
         this.leader = leader;
         leader.setSquad(this);
         playerList = new LinkedList<>();
         playerList.add(leader);
-        //todo create scoreboard
-        team = sb.registerNewTeam(name);
     }
 
     public String getName() {
@@ -40,7 +35,11 @@ public class RoyaleSquad {
 
     public void setName(String name) {
         this.name = name;
-        team.setDisplayName(name);
+    }
+
+    public void setTeam(Team team) {
+        this.team = team;
+        this.team.setDisplayName(this.name);
     }
 
     public List<RoyalePlayer> getPlayers() {
@@ -104,7 +103,7 @@ public class RoyaleSquad {
     }
 
     public void sendMessage(String tag, String msg) {
-        String tagline = tag == null ? "" : tag;
+        String tagline = tag == null ? "" : String.format(TAG_TEMPLATE, tag);
         for (RoyalePlayer rp : playerList) {
             rp.getPlayer().sendMessage(tagline + msg);
         }
