@@ -2,6 +2,7 @@ package ru.sooslick.royale;
 
 import org.bukkit.entity.Player;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -28,6 +29,10 @@ public class RoyalePlayerList {
             }
         }
         return rp;
+    }
+
+    public static Collection<RoyalePlayer> getList() {
+        return PLAYERS.values();
     }
 
     public static RoyalePlayer get(Player p) {

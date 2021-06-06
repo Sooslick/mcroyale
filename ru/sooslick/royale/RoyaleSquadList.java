@@ -8,10 +8,14 @@ import ru.sooslick.royale.config.LobbyConfig;
 import ru.sooslick.royale.util.TeamColorUtil;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class RoyaleSquadList {
+    private final static String CANNOT_GENERATE_SQUAD = "Failed to generate squad. Resulting squad is empty";
+
     public static RoyaleSquadList instance;
 
     private final ArrayList<RoyaleSquad> squads;
@@ -37,6 +41,10 @@ public class RoyaleSquadList {
                 .sum();
     }
 
+    public List<RoyaleSquad> getSquadList() {
+        return squads;
+    }
+
     public int getSquadsCount() {
         return squads.size();
     }
@@ -54,7 +62,8 @@ public class RoyaleSquadList {
     }
 
     public RoyaleSquad getSquadByPlayer(Player p) {
-        return squads.stream().filter(squad -> squad.hasPlayer(p)).findFirst().orElse(null);
+        RoyalePlayer rp = RoyalePlayerList.get(p);
+        return squads.stream().filter(squad -> squad.hasPlayer(rp)).findFirst().orElse(null);
     }
 
     public String formatSquadList() {
@@ -65,8 +74,15 @@ public class RoyaleSquadList {
         return "Team" + (getSquadsCount() + 1);
     }
 
-    public void createSquad(String name, Player leader) {
-        squads.add(new RoyaleSquad(name, RoyalePlayerList.get(leader)));
+    public RoyaleSquad createSquad(String name, Player leader) {
+        return createSquad(name, RoyalePlayerList.get(leader));
+    }
+
+    public RoyaleSquad createSquad(String name, RoyalePlayer leader) {
+        if (name == null) name = getDefaultSquadName();
+        RoyaleSquad squad = new RoyaleSquad(name, leader);
+        squads.add(squad);
+        return squad;
     }
 
     public void disbandSquad(RoyaleSquad squad) {
@@ -175,6 +191,103 @@ public class RoyaleSquadList {
             }
             squad.setTeam(team);
         }
+    }
+
+    public void balanceTeams() {
+        // looking for free players
+        List<RoyalePlayer> freePlayers = RoyalePlayerList.getList()
+                .stream()
+                .filter(rp -> rp.getSquad() == null)
+                .collect(Collectors.toList());
+        Collections.shuffle(freePlayers);
+
+        // check max squad size
+        int maxMembers = LobbyConfig.squadAutoBalancingEnabled ? LobbyConfig.squadMaxMembers : 1;
+        //no autobalance required if max squad size is 1
+        if (maxMembers == 1) {
+            //todo make solo squads
+            return;
+        }
+
+        // looking for shortage squads
+        List<RoyaleSquad> availableSquads = squads.stream()
+                .filter(squad -> squad.getPlayers().size() < maxMembers &&
+                        squad.getSquadParam(RoyalePlayer.ALLOW_BALANCE))
+                .collect(Collectors.toList());
+
+        // calc avg members in staffed squads
+        double avgMembers = squads.stream()
+                .filter(squad -> squad.getPlayers().size() >= maxMembers ||
+                        !squad.getSquadParam(RoyalePlayer.ALLOW_BALANCE))
+                .mapToInt(squad -> squad.getPlayers().size())
+                .average()
+                .orElse(maxMembers);
+
+        // count players required for balancing existing squads without creating new teams
+        int shortage = (int) Math.ceil(availableSquads.stream()
+                .filter(squad -> squad.getPlayers().size() < avgMembers)
+                .mapToDouble(squad -> avgMembers - squad.getPlayers().size())
+                .sum());
+
+        // calc amount of squads required to cover remaining players
+        int newSquadsAmount = freePlayers.size() <= shortage ? 0 :
+                (int) Math.ceil((freePlayers.size() - shortage) / avgMembers);
+
+        //create squads
+        double preSize = 0;
+        for (int i = 0; i < newSquadsAmount; i++) {
+            preSize += avgMembers;
+            int size = (int) Math.floor(preSize);
+            RoyaleSquad squad = createRandomSquad(freePlayers, size);
+            if (squad != null) {
+                List<RoyalePlayer> members = squad.getPlayers();
+                if (members.size() < maxMembers) {
+                    availableSquads.add(squad);
+                }
+                freePlayers.removeAll(members);
+            }
+            preSize -= size;
+        }
+
+        // join remaining players to squads
+        for (RoyalePlayer rp : freePlayers) {
+            RoyaleSquad squad = availableSquads.stream()
+                    .min(Comparator.comparingInt(RoyaleSquad::getPlayersCount))
+                    .orElse(null);
+            if (squad == null) {
+                Collections.shuffle(availableSquads);
+                squad = availableSquads.get(0);
+            }
+            squad.addPlayer(rp);
+        }
+    }
+
+    private RoyaleSquad createRandomSquad(List<RoyalePlayer> players, int size) {
+        // invalid parameters
+        if (players == null || players.size() == 0 || size <= 0) {
+            RoyaleLogger.warn(CANNOT_GENERATE_SQUAD);
+            return null;
+        }
+        // players < max squad size
+        if (players.size() <= size) {
+            return createSquad(players);
+        }
+        // players > max squad size
+        List<RoyalePlayer> subPlayers = players.subList(0, size);
+        return createSquad(subPlayers);
+    }
+
+    private RoyaleSquad createSquad(List<RoyalePlayer> players) {
+        if (players == null || players.size() == 0) {
+            RoyaleLogger.warn(CANNOT_GENERATE_SQUAD);
+            return null;
+        }
+        RoyalePlayer leader = players.get(0);
+        players.remove(0);
+        RoyaleSquad squad = createSquad(null, leader);
+        for (RoyalePlayer rp : players)
+            squad.addPlayer(rp);
+        return squad;
     }
 
     //todo copypaste refactoring

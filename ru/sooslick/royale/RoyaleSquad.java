@@ -12,8 +12,6 @@ import java.util.stream.Collectors;
 public class RoyaleSquad {
     private static final String TAG_TEMPLATE = "§7§i[Team] %s: ";
 
-    static int maxMembers;
-
     private final RoyalePlayer leader;
     private final List<RoyalePlayer> playerList;
 
@@ -47,16 +45,19 @@ public class RoyaleSquad {
     }
 
     public String formatPlayerList() {
-        return playerList.stream().map(RoyalePlayer::getName).collect(Collectors.joining());
+        return playerList.stream().map(RoyalePlayer::getName).collect(Collectors.joining(", "));
     }
 
-    public boolean hasPlayer(Player p) {
-        return playerList.stream().anyMatch(rpl -> rpl.getName().equals(p.getName()));
+    public boolean hasPlayer(RoyalePlayer rp) {
+        return playerList.stream().anyMatch(rpl -> rpl.getName().equals(rp.getName()));
     }
 
     public void addPlayer(Player p) {
-        if ((getPlayersCount() < maxMembers) && !hasPlayer(p)) {
-            RoyalePlayer rp = RoyalePlayerList.get(p);
+        addPlayer(RoyalePlayerList.get(p));
+    }
+
+    public void addPlayer(RoyalePlayer rp) {
+        if ((getPlayersCount() < LobbyConfig.squadMaxMembers) && !hasPlayer(rp)) {
             playerList.add(rp);
             rp.setSquad(this);
         }
@@ -108,4 +109,6 @@ public class RoyaleSquad {
             rp.getPlayer().sendMessage(tagline + msg);
         }
     }
+
+    //todo implement size method and refactor getPlayers().size();
 }
